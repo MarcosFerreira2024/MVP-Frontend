@@ -1,5 +1,6 @@
 import React, { forwardRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { twMerge } from "tailwind-merge";
 
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
@@ -8,12 +9,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   return (
-    <div className="relative group flex items-center flex-1 font-semibold transition-all duration-300 ease-in-out   rounded-sm   ">
+    <div className="relative group flex items-center flex-1  transition-all duration-300 ease-in-out   rounded-sm   ">
       <input
+        autoComplete="off"
         ref={ref}
         {...props}
         type={props.type === "password" && showPassword ? "text" : props.type}
-        className="flex-1 min-h-[50px] px-2 pr-10 placeholder:text-green-800 rounded-sm border  border-green-900 hover:bg-green-900 hover:text-gray-300 hover:border-green-950 hover:placeholder:text-gray-300  text-green-900 bg-gray-50 transition-all duration-300 ease-in-out "
+        className={twMerge(
+          `flex-1 min-h-[50px] px-2 pr-10 focus:outline-none focus:ring-1 placeholder:text-gray-400 rounded-sm border text-base border-green-900 hover:bg-green-900 hover:text-gray-300 hover:border-green-950 hover:placeholder:text-gray-300  text-main bg-gray-50 transition-all duration-300 ease-in-out `,
+          props.className
+        )}
       />
       <AnimatePresence mode="wait">
         {props.type === "password" && (
