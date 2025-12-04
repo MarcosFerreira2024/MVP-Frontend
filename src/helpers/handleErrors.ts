@@ -1,13 +1,12 @@
-import toast from "react-hot-toast";
 import { ZodError } from "zod";
 
-function handleErrors(error: unknown) {
+function handleErrors(error: unknown): string {
   if (error instanceof ZodError) {
-    return toast.error(error.issues[0].message);
+    return error.issues[0].message;
   } else if (error instanceof Error) {
-    return toast.error(error.message);
+    return error.message;
   } else {
-    return toast.error("Ocorreu um erro inesperado, tente novamente.");
+    return "Ocorreu um erro inesperado, tente novamente.";
   }
 }
 
