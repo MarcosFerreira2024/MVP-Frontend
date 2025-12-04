@@ -1,19 +1,21 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useCallback } from "react";
 import toast from "react-hot-toast";
-import sendVerificationCode from "../actions/sendVerificationCode";
+import { sendVerificationCode } from "../actions/sendVerificationCode";
+import handleErrors from "../helpers/handleErrors";
 
 type ContextProviderProps = {
   children: React.ReactNode;
 };
 
 type ContextType = {
-  openModal: () => void;
+  openModal: (email: string) => void;
   closeModal: () => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.FormEvent) => Promise<void>;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isVisible: boolean;
   isLoading: boolean;
-  value: string;
+  codeValue: string;
+  emailValue: string;
 };
 
 const CodeContext = createContext({} as ContextType);
@@ -21,34 +23,50 @@ export default CodeContext;
 
 export const CodeContextProvider = ({ children }: ContextProviderProps) => {
   const [code, setCode] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setVisibility] = useState<boolean>(false);
 
-  const closeModal = () => {
-    return setVisibility(false);
-  };
+  const closeModal = useCallback(() => {
+    setVisibility(false);
+    setCode("");
+    setEmail("");
+  }, []);
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setCode(e.target.value);
-  };
+  }, []);
 
-  const openModal = () => {
-    return setVisibility(true);
-  };
+  const openModal = useCallback((userEmail: string) => {
+    setEmail(userEmail);
+    setVisibility(true);
+  }, []);
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    if (!code) return toast.error("Preencha todos os campos");
+  const onSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsLoading(true);
+      if (!code || !email) {
+        toast.error("Preencha todos os campos.");
+        setIsLoading(false);
+        return;
+      }
 
-    try {
-      await sendVerificationCode(code);
-    } catch {
-      return;
-    } finally {
-      setIsLoading(false); // sempre será chamado
-    }
-  };
+      try {
+        await toast.promise(sendVerificationCode(email, code), {
+          loading: "Verificando código...",
+          success: "Código verificado com sucesso! Faça login novamente.",
+          error: (err) => handleErrors(err),
+        });
+        closeModal();
+      } catch (error) {
+        return;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [code, email, closeModal]
+  );
 
   return (
     <CodeContext.Provider
@@ -59,7 +77,8 @@ export const CodeContextProvider = ({ children }: ContextProviderProps) => {
         openModal,
         isVisible,
         isLoading,
-        value: code,
+        codeValue: code,
+        emailValue: email,
       }}
     >
       {children}
