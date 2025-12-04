@@ -1,31 +1,30 @@
-import { toast } from "react-hot-toast";
 import Cookies from "js-cookie";
 
-async function sendVerificationCode(code: string) {
-  const promise = fetch("http://localhost:3333/authentication/verify-code", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code }),
-  })
-    .then(async (response) => {
-      const json = await response.json();
+export async function sendVerificationCode(email: string, code: string): Promise<any> {
+  const token = Cookies.get("token"); 
 
-      if (response.status !== 200) {
-        throw new Error(json.message);
-      }
+  if (!token) {
+    console.warn("No authentication token found for code verification.");
+  }
 
-      Cookies.set("token", json.data);
-      return json;
-    })
-    .catch((e: unknown) => {
-      throw e;
+  try {
+    const response = await fetch("http://localhost:3333/authentication/verify-code", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({ email, code }),
     });
 
-  return toast.promise(promise, {
-    loading: "Verificando código...",
-    success: "Código verificado com sucesso!",
-    error: "Falha ao verificar o código",
-  });
-}
+    const json = await response.json();
 
-export default sendVerificationCode;
+    if (!response.ok) {
+      throw new Error(json.message || json.error || "Falha na verificação do código.");
+    }
+
+    return json; 
+  } catch (e: any) {
+    throw new Error(e.message || "Erro de rede ou comunicação para verificação de código.");
+  }
+}

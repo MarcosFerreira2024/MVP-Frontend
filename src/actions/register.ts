@@ -1,28 +1,28 @@
-import { toast } from "react-hot-toast";
-
-async function handleRegister(name: string, email: string, password: string) {
-  const promise = fetch("http://localhost:3333/authentication/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password }),
-  })
-    .then(async (response) => {
-      const json = await response.json();
-
-      if (response.status !== 200) {
-        throw new Error(json.message);
+async function handleRegister(
+  name: string,
+  email: string,
+  password: string
+): Promise<any> {
+  try {
+    const response = await fetch(
+      "http://localhost:3333/authentication/signup",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
       }
+    );
 
-      return json;
-    })
-    .catch((e: unknown) => {
-      throw e;
-    });
+    const json = await response.json();
 
-  return toast.promise(promise, {
-    loading: "Registrando usuário...",
-    success: "Cadastro realizado com sucesso!",
-  });
+    if (!response.ok) {
+      throw new Error(json.message || json.error || "Falha no cadastro.");
+    }
+
+    return json;
+  } catch (e: any) {
+    throw new Error(e.message || "Erro de rede ou comunicação.");
+  }
 }
 
 export default handleRegister;
