@@ -41,7 +41,11 @@ function AuthForm({ data, type, onSubmit, isLoading }: AuthFormProps) {
   const config = authConfig[type];
 
   return (
-    <form onSubmit={onSubmit} className="w-full flex flex-col gap-5">
+    <form
+      autoComplete="off"
+      onSubmit={onSubmit}
+      className="w-full flex flex-col gap-5"
+    >
       <h2 className="font-segoe text-4xl text-gray-50 text-center">
         {config.title}
       </h2>
