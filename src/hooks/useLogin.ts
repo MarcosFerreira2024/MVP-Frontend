@@ -5,9 +5,13 @@ import type { InputData } from "../components/auth/InputLabelList";
 import CodeContext from "../context/CodeContext";
 import handleErrors from "../helpers/handleErrors";
 import handleLogin from "../actions/login";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 
 export function useLogin() {
   const [form, setForm] = useState({ email: "", password: "" });
+  const { login } = useUser();
+  const navigate = useNavigate();
 
   const { openModal } = useContext(CodeContext);
   const [loading, setLoading] = useState(false);
@@ -18,20 +22,39 @@ export function useLogin() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
       if (form.email.trim() === "" && form.password.trim() === "") {
         return toast.error("Preencha todos os campos");
       }
-      loginSchema.parse(form);
+      loginSchema.parse(form); // Validate form data with Zod
 
-      await handleLogin(form.email, form.password);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        if (error.message.includes("Verifique")) {
-          return openModal();
+      // Use toast.promise to wrap the asynchronous login process
+      const token = await toast.promise(
+        handleLogin(form.email, form.password),
+        {
+          loading: "Fazendo login...",
+          success: "Login realizado com sucesso!",
+          error: (err: any) => {
+            const errorMessage = handleErrors(err); // Get the error message string
+
+            if (errorMessage.includes("Usuário nao verificado")) {
+              openModal(form.email); // Pass the email to openModal
+              return "Verifique seu email para concluir o login."; // Custom message for this scenario
+            }
+            return errorMessage; // For other errors, return the message to toast
+          },
         }
-      }
-      handleErrors(error);
+      );
+
+      // If handleLogin resolves (success), then call useUser's login function
+      await login(token);
+      navigate("/");
+    } catch (error: unknown) {
+      // This catch block handles Zod errors from loginSchema.parse(form)
+      // or any unhandled rejections from toast.promise itself if its error callback throws
+      toast.error(handleErrors(error));
     } finally {
       setLoading(false);
     }
