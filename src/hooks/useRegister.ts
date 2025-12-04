@@ -4,6 +4,7 @@ import { ZodError } from "zod";
 import toast from "react-hot-toast";
 import type { InputData } from "../components/auth/InputLabelList";
 import handleRegister from "../actions/register";
+import handleErrors from "../helpers/handleErrors";
 
 export function useRegister() {
   const [form, setForm] = useState({
@@ -33,14 +34,21 @@ export function useRegister() {
       ) {
         return toast.error("Preencha todos os campos");
       }
-      registerSchema.parse(form);
-      await handleRegister(form.name, form.email, form.password);
+      registerSchema.parse(form); // Validate form data with Zod
+
+      // If Zod validation passes, proceed with API call
+      await toast.promise(
+        handleRegister(form.name, form.email, form.password),
+        {
+          loading: "Registrando usuário...",
+          success: "Cadastro realizado com sucesso!",
+          error: (err) => handleErrors(err), // handleErrors returns the message string
+        }
+      );
     } catch (error) {
-      if (error instanceof ZodError) {
-        toast.error(error.issues[0].message);
-      } else {
-        toast.error("Ocorreu um erro inesperado.");
-      }
+      // This catch block will now primarily handle Zod errors
+      // and any unexpected errors from toast.promise itself if it fails to resolve/reject
+      toast.error(handleErrors(error));
     } finally {
       setLoading(false);
     }
