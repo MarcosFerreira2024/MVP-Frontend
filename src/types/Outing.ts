@@ -52,18 +52,20 @@ interface OpenHour {
 interface Park {
   id: string;
   name: string;
-  // Add other properties of Park if known
+  biodiversity?: string;
+  maximumCapacity?: number;
 }
 
 interface Event {
   id: string;
   name: string;
-  // Add other properties of Event if known
+  maximumCapacity?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface User {
   avatarUrl: string | null;
-  email: string;
   name: string;
 }
 
@@ -72,6 +74,8 @@ export interface Rating {
   comment: string;
   rating: number;
   user: User;
+  userId: string;
+  outingId: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -83,6 +87,7 @@ export type OutingResponse = {
   price: number;
   slug: string;
   public: string;
+  publicAudience: string;
   createdAt: string;
   updatedAt: string;
   trail: Trail | null;

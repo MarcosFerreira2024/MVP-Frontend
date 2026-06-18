@@ -1,10 +1,12 @@
 import { Star } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "../Button";
 import TextArea from "../TextArea";
 import { sendRating } from "../../actions/sendRating";
+import { updateRating } from "../../actions/updateRating";
 import handleErrors from "../../helpers/handleErrors";
 import toast from "react-hot-toast";
+import type { Rating } from "../../types/Outing";
 
 interface RatingFormProps {
   outingId: string;
@@ -13,6 +15,7 @@ interface RatingFormProps {
   close: () => void;
   onRatingSuccess?: () => void;
   maxStars?: number;
+  editingRating?: Rating | null;
 }
 
 export function RatingForm({
@@ -22,11 +25,24 @@ export function RatingForm({
   close,
   onRatingSuccess,
   maxStars = 5,
+  editingRating = null,
 }: RatingFormProps) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const isEditing = !!editingRating;
+
+  useEffect(() => {
+    if (editingRating) {
+      setRating(editingRating.rating);
+      setContent(editingRating.comment || "");
+    } else {
+      setRating(0);
+      setContent("");
+    }
+  }, [editingRating]);
 
   const handleStarClick = (starIndex: number) => {
     setRating(starIndex + 1);
@@ -48,14 +64,22 @@ export function RatingForm({
 
     setIsLoading(true);
     try {
-      await toast.promise(sendRating({ outingId, rating, content }), {
-        loading: "Enviando avaliação...",
-        success: "Avaliação enviada com sucesso!",
-        error: (err) => handleErrors(err),
-      });
+      if (isEditing && editingRating) {
+        await toast.promise(updateRating(editingRating.id, { rating, content }), {
+          loading: "Atualizando avaliação...",
+          success: "Avaliação atualizada com sucesso!",
+          error: (err) => handleErrors(err),
+        });
+      } else {
+        await toast.promise(sendRating({ outingId, rating, content }), {
+          loading: "Enviando avaliação...",
+          success: "Avaliação enviada com sucesso!",
+          error: (err) => handleErrors(err),
+        });
+      }
       onRatingSuccess?.();
       close();
-    } catch (error) {
+    } catch {
       return;
     } finally {
       setIsLoading(false);
@@ -75,8 +99,7 @@ export function RatingForm({
           X
         </Button>
         <div>
-          <h2 className="text-2xl  text-main ">{title}</h2>
-
+          <h2 className="text-2xl  text-main ">{isEditing ? "Editar avaliação" : title}</h2>
           <p className="text-gray-400 text-sm ">{description}</p>
         </div>
 
@@ -124,7 +147,9 @@ export function RatingForm({
           disabled={rating === 0 || isLoading}
           className="flex-1"
         >
-          {isLoading ? "Enviando..." : "Enviar avaliação"}
+          {isLoading
+            ? (isEditing ? "Atualizando..." : "Enviando...")
+            : (isEditing ? "Atualizar avaliação" : "Enviar avaliação")}
         </Button>
       </div>
     </div>

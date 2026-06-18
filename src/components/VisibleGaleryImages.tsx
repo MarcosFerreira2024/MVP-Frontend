@@ -19,7 +19,7 @@ function VisibleGaleryImages({
     " max-h-[180px] ",
   ];
   return (
-    <div className="grid  grid-cols-4 gap-1">
+    <div className="grid grid-cols-4 gap-1">
       {visibleImages.map((item, index) => {
         const isLast = index === visibleImages.length - 1;
 

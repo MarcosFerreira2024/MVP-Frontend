@@ -1,6 +1,6 @@
 import Button from "../../Button";
 import Label from "../../Label";
-import type { DataItem, SetDataItemDispatch } from "./OutingCreationModal";
+import type { DataItem, SetDataItemDispatch } from "../../../hooks/useOutingCreation";
 
 type SelectionButtonsProps<T extends DataItem> = {
   data: T[];

@@ -32,12 +32,13 @@ export function FullScreenImage({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="relative max-w-7xl max-h-[80vh] mx-4"
+            className="relative"
           >
             <img
               src={image || "/placeholder.svg"}
               alt="Imagem em tela cheia"
-              className="w-full h-full object-contain rounded-lg shadow-2xl"
+              draggable={false}
+              className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg shadow-2xl select-none"
             />
 
             <button

@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { registerSchema } from "../helpers/validationSchemas";
-import { ZodError } from "zod";
 import toast from "react-hot-toast";
 import type { InputData } from "../components/auth/InputLabelList";
 import handleRegister from "../actions/register";
@@ -16,12 +15,12 @@ export function useRegister() {
 
   const [loading, setLoading] = useState(false);
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
 

@@ -5,7 +5,7 @@ function useTwoRowsCarousel(items: OutingCarouselItem[]) {
   const topRowRef = useRef<HTMLDivElement>(null);
   const bottomRowRef = useRef<HTMLDivElement>(null);
   const isProgrammaticScrollRef = useRef(false);
-  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastFocusScrollRef = useRef<number>(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -24,7 +24,7 @@ function useTwoRowsCarousel(items: OutingCarouselItem[]) {
   const getCardWidth = () => {
     if (!topRowRef.current) return 0;
     const firstCard = topRowRef.current.querySelector(
-      ".carousel-item"
+      ".carousel-item",
     ) as HTMLElement;
     if (!firstCard) return 0;
     const gap = 16;
@@ -50,7 +50,7 @@ function useTwoRowsCarousel(items: OutingCarouselItem[]) {
       if (source === "top" && topRowRef.current && bottomRowRef.current) {
         if (
           Math.abs(
-            bottomRowRef.current.scrollLeft - topRowRef.current.scrollLeft
+            bottomRowRef.current.scrollLeft - topRowRef.current.scrollLeft,
           ) > 2
         ) {
           bottomRowRef.current.scrollLeft = topRowRef.current.scrollLeft;
@@ -62,7 +62,7 @@ function useTwoRowsCarousel(items: OutingCarouselItem[]) {
       ) {
         if (
           Math.abs(
-            topRowRef.current.scrollLeft - bottomRowRef.current.scrollLeft
+            topRowRef.current.scrollLeft - bottomRowRef.current.scrollLeft,
           ) > 2
         ) {
           topRowRef.current.scrollLeft = bottomRowRef.current.scrollLeft;

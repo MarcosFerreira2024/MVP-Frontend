@@ -1,8 +1,5 @@
 import React from "react";
 import SectionTitle from "../SectionTitle";
-import { useUser } from "../../context/UserContext";
-import { Pencil } from "lucide-react";
-import toast from "react-hot-toast";
 
 type SectionProps = {
   title: string;
@@ -20,7 +17,7 @@ function Section({ title, description, isOnLightBg, children }: SectionProps) {
       id={title.toLowerCase()}
       className="relative"
     >
-      <div className="max-w-[1440px]  mx-auto justify-center py-10 flex flex-col gap-10  ">
+      <div className="max-w-[1440px] mx-auto justify-center py-10 flex flex-col gap-10 px-4 md:px-0">
         <SectionTitle
           title={title}
           description={description}

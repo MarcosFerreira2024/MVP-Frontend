@@ -1,4 +1,5 @@
 import { useContext, useState } from "react";
+import { ZodError } from "zod";
 import { loginSchema } from "../helpers/validationSchemas";
 import toast from "react-hot-toast";
 import type { InputData } from "../components/auth/InputLabelList";
@@ -52,9 +53,9 @@ export function useLogin() {
       await login(token);
       navigate("/");
     } catch (error: unknown) {
-      // This catch block handles Zod errors from loginSchema.parse(form)
-      // or any unhandled rejections from toast.promise itself if its error callback throws
-      toast.error(handleErrors(error));
+      if (error instanceof ZodError) {
+        toast.error(handleErrors(error));
+      }
     } finally {
       setLoading(false);
     }

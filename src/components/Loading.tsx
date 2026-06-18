@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useLoading } from "../hooks/useLoading";
+
 
 function Loading() {
-  const { isLoading } = useLoading();
+  // const { isLoading } = useLoading();
+
+  const isLoading = false;
 
   const [visible, setVisible] = useState(false);
   const startTimeRef = useRef<number | null>(null);

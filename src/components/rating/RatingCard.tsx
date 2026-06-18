@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import UserCard from "./UserCard";
 import type { Rating } from "../../types/Outing";
-import { Trash } from "lucide-react";
-import { useUser } from "../../context/UserContext";
+import { Pencil, Trash } from "lucide-react";
+import { useAuthorization } from "../../hooks/useAuthorization";
 import { deleteRating } from "../../actions/deleteRating";
 import handleErrors from "../../helpers/handleErrors";
 import toast from "react-hot-toast";
@@ -10,50 +10,64 @@ import Button from "../Button";
 
 interface RatingCardProps {
   ratingData: Rating;
-  onDeleteSuccess?: () => void;
-  outingId: string; // Add outingId to props
+  onDeleteSuccess?: (ratingId: string) => void;
+  onEdit?: (rating: Rating) => void;
+  outingId: string;
 }
 
-function RatingCard({ ratingData, onDeleteSuccess, outingId }: RatingCardProps) {
-  const { user } = useUser();
+function RatingCard({ ratingData, onDeleteSuccess, onEdit, outingId }: RatingCardProps) {
+  const { loading, canDeleteRating, isOwner } = useAuthorization();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await toast.promise(deleteRating(outingId, ratingData.id), { // Pass both outingId and ratingId
+      await toast.promise(deleteRating(outingId, ratingData.id), {
         loading: "Apagando avaliação...",
         success: "Avaliação apagada com sucesso!",
         error: (err) => handleErrors(err),
       });
-      onDeleteSuccess?.(); // Call the refresh function
-    } catch (error) {
-      // Errors handled by toast.promise
+      onDeleteSuccess?.(ratingData.id);
+    } catch {
+      // ignore
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const isMyRating = user && user.email === ratingData.user.email; // Compare emails for now
+  const canDelete = canDeleteRating(ratingData.userId);
+  const isOwnerRating = isOwner(ratingData.userId);
 
   return (
     <div className="flex flex-col gap-3 h-full max-h-[150px] w-full py-3 border-b border-gray-200 relative">
-      {isMyRating && (
-        <Button
-          onClick={handleDelete}
-          disabled={isDeleting}
-          className="absolute top-0 right-0 w-8 h-8 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors"
-          size="icon"
-          aria-label="Apagar avaliação"
-        >
-          <Trash size={16} />
-        </Button>
+      {!loading && canDelete && (
+        <div className="absolute top-0 right-0 flex gap-1">
+          {isOwnerRating && (
+            <Button
+              onClick={() => onEdit?.(ratingData)}
+              className="w-8 h-8 p-1 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center transition-colors"
+              size="icon"
+              aria-label="Editar avaliação"
+            >
+              <Pencil size={16} />
+            </Button>
+          )}
+          <Button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="w-8 h-8 p-1 bg-red-700 hover:bg-red-800 text-white rounded-full flex items-center justify-center transition-colors"
+            size="icon"
+            aria-label="Apagar avaliação"
+          >
+            <Trash size={16} />
+          </Button>
+        </div>
       )}
       <UserCard
         data={ratingData.createdAt}
         ratingValue={ratingData.rating}
         userName={ratingData.user.name}
-        userPhoto={ratingData.avatarUrl || undefined}
+        userPhoto={ratingData.user.avatarUrl || undefined}
       />
       {ratingData.comment && (
         <p className="font-segoe text-sm font-semibold text-gray-500 h-full line-clamp-3">

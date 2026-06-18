@@ -1,4 +1,3 @@
-import React from "react";
 import Selectors from "./Selectors";
 
 function SelectorsList({

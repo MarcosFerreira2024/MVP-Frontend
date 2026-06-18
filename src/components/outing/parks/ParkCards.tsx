@@ -1,8 +1,5 @@
 import { useState } from "react";
 import MobileCarousel from "../../MobileCarousel";
-import { useUser } from "../../../context/UserContext";
-import { Pencil } from "lucide-react";
-import toast from "react-hot-toast";
 
 const parkData = [
   {
@@ -30,11 +27,6 @@ const positions = [
 
 export default function ParkCards() {
   const [activeIndex, setActiveIndex] = useState<number>(1);
-  const { isAdmin } = useUser();
-
-  const handleEditClick = () => {
-    toast.success("Edição dos parques habilitada (em breve)!");
-  };
 
   const handleClick = (index: number) => {
     if (activeIndex === index) {
@@ -48,14 +40,6 @@ export default function ParkCards() {
 
   return (
     <div className="relative w-full max-w-[1440px] h-[400px] mx-auto ">
-      {isAdmin && (
-        <div
-          className="absolute top-2 right-2 z-40  text-white p-2 rounded-full cursor-pointer hover:text-green-950 transition-colors"
-          onClick={handleEditClick}
-        >
-          <Pencil className="w-5 h-5" />
-        </div>
-      )}
       <div className="hidden xl:block">
         {parkData.map((park, index) => {
           const { side, rotation, origin } = positions[index];
@@ -95,8 +79,11 @@ export default function ParkCards() {
         })}
       </div>
 
-      <div className="xl:hidden w-full max-h-fit h-full">
-        <MobileCarousel images={mobileImages} />
+      <div className="xl:hidden w-full max-h-fit h-full rounded-xl overflow-hidden">
+        <MobileCarousel
+          images={mobileImages}
+          onImageDoubleClick={(i) => window.location.href = parkData[i].to}
+        />
       </div>
     </div>
   );

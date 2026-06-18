@@ -77,7 +77,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   if (user) {
     user.userPhoto =
-      user.userPhoto ?? `/avatars/${Math.floor(Math.random() * 9) + 1}.png`;
+      user.userPhoto ?? `/avatars/${([...user.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 9) + 1}.png`;
   }
 
   return (

@@ -5,6 +5,7 @@ type SectionTitleProps = {
   description: string;
   isOnLightBg?: boolean;
   children?: React.ReactNode;
+  noPadding?: boolean;
 };
 
 function SectionTitle({
@@ -12,9 +13,10 @@ function SectionTitle({
   description,
   isOnLightBg = true,
   children,
+  noPadding = false,
 }: SectionTitleProps) {
   return (
-    <div className="font-semibold font-segoe px-4 xl:px-0 ">
+    <div className={`font-semibold font-segoe ${noPadding ? "px-0" : "px-4 xl:px-0"}`}>
       <div className="flex flex-col">
         <div className="flex items-center gap-2 justify-between max-w-fit w-full">
           <h2

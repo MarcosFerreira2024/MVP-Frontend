@@ -1,21 +1,21 @@
-import React from "react";
 import RatingCard from "./RatingCard";
 import Scrollable from "../Scrollable";
-import type { Rating } from "../../types/Outing"; // Import from central types
+import type { Rating } from "../../types/Outing";
 
 export type RatingListProps = {
   data?: Rating[];
-  onDeleteSuccess?: () => void; // Add onDeleteSuccess to props
-  outingId: string; // Add outingId to props
+  onDeleteSuccess?: (ratingId: string) => void;
+  onEdit?: (rating: Rating) => void;
+  outingId: string;
 };
 
-function RatingList({ data, onDeleteSuccess, outingId }: RatingListProps) {
+function RatingList({ data, onDeleteSuccess, onEdit, outingId }: RatingListProps) {
   return (
     <>
       {data && data.length > 0 ? (
         <Scrollable className="flex flex-col gap-3" height={150 * 2.2}>
           {data.map((item) => (
-            <RatingCard key={item.id} ratingData={item} onDeleteSuccess={onDeleteSuccess} outingId={outingId} />
+            <RatingCard key={item.id} ratingData={item} onDeleteSuccess={onDeleteSuccess} onEdit={onEdit} outingId={outingId} />
           ))}
         </Scrollable>
       ) : (

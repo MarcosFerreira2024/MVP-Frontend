@@ -23,7 +23,7 @@ export function Map({ latitude, longitude, name }: MapProps) {
       <MapContainer
         center={center}
         zoom={18}
-        className="rounded-md min-w-[500px] border border-green-900 main-shadow w-full h-full min-h-[300px] "
+        className="rounded-md border border-green-900 main-shadow w-full h-full min-h-[300px] "
       >
         <TileLayer
           attribution="&copy; OpenStreetMap contributors"

@@ -1,4 +1,3 @@
-import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Button from "./Button";
 import HeaderLinks, { type HeaderLink } from "./HeaderLinks";
@@ -15,7 +14,7 @@ function MobileHeaderMenu({
   closeMenu: () => void;
   navLinks: HeaderLink[];
 }) {
-  const { isAdmin, isAuthenticated } = useUser();
+  const { isAdmin, isAuthenticated, loading } = useUser();
 
   return (
     <AnimatePresence>
@@ -25,9 +24,9 @@ function MobileHeaderMenu({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed md:hidden top-0 left-0 w-screen h-screen bg-black/40 flex z-50"
+          className="fixed md:hidden top-0 left-0 w-screen h-screen bg-black/40 flex z-[9000]"
         >
-          <div onClick={closeMenu} className="min-w-[45vw]" />
+          <div onClick={closeMenu} className="min-w-[30vw]" />
 
           <motion.div
             initial={{ x: 400, opacity: 0 }}
@@ -56,9 +55,7 @@ function MobileHeaderMenu({
               />
 
               <div className="flex flex-col items-center gap-4 mt-4">
-                {isAuthenticated ? (
-                  ""
-                ) : (
+                {!loading && !isAuthenticated && (
                   <Link
                     className="text-main text-xl hover:text-green-950 transition-all duration-300"
                     to="/login"

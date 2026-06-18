@@ -21,7 +21,7 @@ function Search() {
           value={searchValue}
           onKeyDown={handleKeyPressed}
           onChange={handleChange}
-          placeholder="Eventos para ir, parques para explorar ... "
+          placeholder="Procure um passeio ... "
           className="bg-none outline-none select-none placeholder:text-gray-100 text-gray-100 font-segoe font-semibold w-full"
         />
         {searchValue && (

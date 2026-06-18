@@ -13,14 +13,14 @@ function UserCard({ userName, userPhoto, data, ratingValue }: UserCardProps) {
 
   const convertedData = timestampConverter(data);
 
-  console.log(userPhoto);
+  const avatarSrc =
+    userPhoto ??
+    `/avatars/${([...userName].reduce((a, c) => a + c.charCodeAt(0), 0) % 9) + 1}.png`;
 
   return (
     <div className="flex  gap-2 ">
       <img
-        src={
-          userPhoto && userPhoto !== undefined ? userPhoto : "/mock-profile.png"
-        }
+        src={avatarSrc}
         alt={userName}
         className="w-full h-full border border-green-900 rounded-full max-w-[48px] max-h-[48px]"
       />

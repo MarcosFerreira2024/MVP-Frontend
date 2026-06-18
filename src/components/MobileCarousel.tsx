@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -12,12 +12,21 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function MobileCarousel({
   images,
   onDragStateChange,
+  onImageDoubleClick,
 }: {
   images: string[];
   onDragStateChange?: (isDragging: boolean) => void;
+  onImageDoubleClick?: (index: number) => void;
 }) {
   const [index, setIndex] = useState(0);
+  const [resizeKey, setResizeKey] = useState(0);
   const constraintsRef = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setResizeKey((n) => n + 1);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleDragStart = () => {
     onDragStateChange?.(true);
@@ -51,6 +60,8 @@ export default function MobileCarousel({
         className="relative h-full w-full  overflow-hidden"
       >
         <motion.div
+          key={resizeKey}
+          initial={false}
           style={{
             width: `${images.length * 100}%`,
             height: `100%`,
@@ -66,10 +77,18 @@ export default function MobileCarousel({
           className="flex"
         >
           {images.map((image, imageIndex) => (
-            <div key={image + imageIndex} className=" w-full h-full ">
+            <div
+              key={image + imageIndex}
+              className="w-full h-full"
+              onDoubleClick={(e) => {
+                e.preventDefault();
+                onImageDoubleClick?.(imageIndex);
+              }}
+            >
               <img
                 src={image || "/placeholder.svg"}
-                className="min-h-full min-w-full object-cover pointer-events-none "
+                draggable={false}
+                className="min-h-full min-w-full object-cover pointer-events-none select-none"
               />
             </div>
           ))}

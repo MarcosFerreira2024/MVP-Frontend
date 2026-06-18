@@ -1,7 +1,10 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { OutingCard } from "./OutingCard";
+import Button from "../Button";
 import useTwoRowsCarousel from "../../hooks/useTwoRowsCarousel";
 
 export type OutingCarouselItem = {
+  id: string;
   rating: string;
   ratingCount: number;
   title: string;
@@ -13,9 +16,11 @@ export type OutingCarouselItem = {
 
 type TwoRowsCarouselProps = {
   items: OutingCarouselItem[];
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 };
 
-export function TwoRowsCarousel({ items }: TwoRowsCarouselProps) {
+export function TwoRowsCarousel({ items, onEdit, onDelete }: TwoRowsCarouselProps) {
   const {
     balancedBottomRowItems,
     canScrollLeft,
@@ -34,13 +39,14 @@ export function TwoRowsCarousel({ items }: TwoRowsCarouselProps) {
         {rowItems.map((item, idx) => (
           <div key={idx} className="carousel-item snap-start snap-always">
             {item ? (
-              <OutingCard {...item} />
+              <OutingCard {...item} onEdit={onEdit} onDelete={onDelete} />
             ) : (
               <div
                 className="w-full opacity-0 pointer-events-none"
                 aria-hidden="true"
               >
                 <OutingCard
+                  id=""
                   rating="0"
                   ratingCount={0}
                   title="Placeholder"
@@ -61,19 +67,27 @@ export function TwoRowsCarousel({ items }: TwoRowsCarouselProps) {
     <div className="w-full ">
       <div className="flex justify-end items-center ">
         <div className="flex gap-2">
-          <button
-            onClick={handlePrevious}
-            className="p-3 rounded-full bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          <Button
+            variant="default"
+            size="icon"
+            className="rounded-full w-8 h-8 disabled:cursor-default"
             disabled={!canScrollLeft}
+            onClick={handlePrevious}
             aria-label="Anterior"
-          ></button>
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
 
-          <button
-            onClick={handleNext}
-            className="p-3 rounded-full bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          <Button
+            variant="default"
+            size="icon"
+            className="rounded-full w-8 h-8 disabled:cursor-default"
             disabled={!canScrollRight}
+            onClick={handleNext}
             aria-label="Próximo"
-          ></button>
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 

@@ -6,11 +6,13 @@ import { CodeContextProvider } from "./context/CodeContext";
 import Home from "./pages/Home";
 import Testes from "./pages/Testes";
 import ScrollToHash from "./components/ScrollToHash";
+import { ScrollTop } from "./components/ScrollTop";
 import Outing from "./pages/Outing";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import { OutingsProvider } from "./context/OutingsContext";
-import { UserProvider, useUser } from "./context/UserContext";
+import { useUser } from "./context/UserContext";
+import MainLayout from "./layouts/MainLayout";
 import RedirectIfAuth from "./layouts/RedirectIfAuth";
 import AdminRoute from "./layouts/AdminRoute";
 import Logout from "./components/Logout";
@@ -45,10 +47,17 @@ function App() {
           }}
         />
         <ScrollToHash />
+        <ScrollTop />
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/outing/:slug" element={<Outing />} />
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/outing/:slug" element={<Outing />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/testes" element={<Testes />} />
+              <Route path="/admin" element={<Admin />} />
+            </Route>
+          </Route>
 
           <Route element={<RedirectIfAuth />}>
             <Route
@@ -60,13 +69,6 @@ function App() {
               }
             />
             <Route path="/register" element={<Register />} />
-          </Route>
-
-          {/* Admin Routes */}
-          <Route element={<AdminRoute />}>
-            <Route path="/testes" element={<Testes />} />
-
-            <Route path="/admin" element={<Admin />} />
           </Route>
         </Routes>
       </BrowserRouter>

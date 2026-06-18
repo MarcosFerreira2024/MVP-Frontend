@@ -37,7 +37,7 @@ export const validateImageJson = (jsonString: string) => {
     return { success: true, message: "JSON de imagens válido." };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, message: error.errors[0].message };
+      return { success: false, message: error.issues[0].message };
     }
     // Handle case where JSON.parse fails (e.g., empty string, malformed JSON)
     return { success: false, message: "Formato JSON inválido." };

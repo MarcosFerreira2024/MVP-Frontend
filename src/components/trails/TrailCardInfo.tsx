@@ -1,4 +1,3 @@
-import React from "react";
 import OpenStatus from "../OpenStatus";
 import InformativeText from "../InformativeText";
 import Scrollable from "../Scrollable";

@@ -1,23 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import type { OutingResponse } from "../types/Outing";
-import { useLoading } from "./useLoading"; // Import useLoading
 
 function useOuting(slug: string) {
   const [outingData, setOutingData] = useState<OutingResponse | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isLoading, setIsLoading } = useLoading(); // Use global loading state
 
-  // Memoize the fetch function to make it stable across renders
   const fetchOuting = useCallback(async () => {
     if (!slug) {
-      // If slug is empty, reset data and return
       setOutingData(null);
       setError(null);
-      setIsLoading(false);
+      setLoading(false);
       return;
     }
-    
-    setIsLoading(true); // Set global loading to true
+
+    setLoading(true);
     setError(null);
     try {
       const response = await fetch(`http://localhost:3333/outing/${slug}`);
@@ -29,20 +26,45 @@ function useOuting(slug: string) {
     } catch (e: any) {
       setError(e.message);
     } finally {
-      setIsLoading(false); // Set global loading to false
+      setLoading(false);
     }
-  }, [slug, setIsLoading]); // Depend on slug and setIsLoading
+  }, [slug]);
 
-  // Call fetchOuting when the component mounts or slug changes
+  const silentRefetch = useCallback(async () => {
+    if (!slug) return;
+    try {
+      const response = await fetch(`http://localhost:3333/outing/${slug}`);
+      if (response.ok) {
+        const data: OutingResponse = await response.json();
+        setOutingData(data);
+      }
+    } catch (e) {}
+  }, [slug]);
+
+  const removeRating = useCallback((ratingId: string) => {
+    setOutingData((prev) =>
+      prev
+        ? { ...prev, ratings: prev.ratings.filter((r) => r.id !== ratingId) }
+        : prev
+    );
+  }, []);
+
+  const patchOuting = useCallback((data: OutingResponse) => {
+    setOutingData(data);
+  }, []);
+
   useEffect(() => {
     fetchOuting();
-  }, [fetchOuting]); // Depend on the memoized fetchOuting
+  }, [fetchOuting]);
 
   return {
     outingData,
-    loading: isLoading, // Return global loading state
+    loading,
     error,
-    refetchOuting: fetchOuting, // Expose the refetch function
+    refetchOuting: fetchOuting,
+    silentRefetch,
+    removeRating,
+    patchOuting,
   };
 }
 

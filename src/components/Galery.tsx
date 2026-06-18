@@ -1,4 +1,3 @@
-import type React from "react";
 import { FullScreenImage } from "./FullScreenImage";
 import { FullGaleryImages } from "./FullGaleryImages";
 import VisibleGaleryImages from "./VisibleGaleryImages";

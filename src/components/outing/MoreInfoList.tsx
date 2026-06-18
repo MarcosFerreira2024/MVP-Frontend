@@ -1,5 +1,5 @@
 import MoreInfo from "./MoreInfo";
-import type { OutingResponse } from "../../hooks/useOuting";
+import type { OutingResponse } from "../../types/Outing";
 import {
   Clock,
   Footprints,

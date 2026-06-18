@@ -235,7 +235,7 @@ export const useOutingCreation = () => {
       price: parseFloat(price), // Parse price to number
       slug,
       publicAudience: "ALL", // Hardcoded as per example, no UI for this yet
-      categoryId: String(category.id), // Use category ID, explicitly converted to string
+      categoryId: category.id, // Use category ID
       location: {
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),

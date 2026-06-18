@@ -4,10 +4,11 @@ import type React from "react";
 import MobileCarousel from "../MobileCarousel";
 import Button from "../Button";
 import { useUser } from "../../context/UserContext";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 export type OutingCardProps = {
+  id: string;
   rating: string;
   ratingCount: number;
   title: string;
@@ -19,6 +20,7 @@ export type OutingCardProps = {
 };
 
 const mocks = {
+  id: "",
   rating: "0,0",
   ratingCount: 0,
   title: "Festival das Lanternas de Lúmina",
@@ -31,7 +33,13 @@ const mocks = {
   style: {},
 };
 
+type OutingCardActions = {
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+};
+
 export function OutingCard({
+  id = mocks.id,
   rating = mocks.rating,
   ratingCount = mocks.ratingCount,
   title = mocks.title,
@@ -40,12 +48,26 @@ export function OutingCard({
   to = mocks.redirectTo,
   images = mocks.images,
   style = {},
-}: OutingCardProps) {
+  onEdit,
+  onDelete,
+}: OutingCardProps & OutingCardActions) {
   const { isAdmin } = useUser();
   const isFree = parseInt(price) == 0.0;
 
   const handleEditClick = () => {
-    toast.success("Edição habilitada (funcionalidade em breve)!");
+    if (onEdit) {
+      onEdit(id);
+    } else {
+      toast.success("Edição habilitada (funcionalidade em breve)!");
+    }
+  };
+
+  const handleDeleteClick = () => {
+    if (onDelete) {
+      onDelete(id);
+    } else {
+      toast.success("Funcionalidade em breve!");
+    }
   };
 
   return (
@@ -54,11 +76,19 @@ export function OutingCard({
       className="relative flex flex-1 flex-col font-segoe font-semibold  max-h-fit rounded-xl border border-gray-50 shadow-lg overflow-hidden bg-gray-50 h-full"
     >
       {isAdmin && (
-        <div
-          className="absolute top-2 right-2 z-10 bg-green-950 text-white p-2 rounded-full cursor-pointer hover:text-green-950 transition-colors"
-          onClick={handleEditClick}
-        >
-          <Pencil className="w-4 h-4" />
+        <div className="absolute top-2 right-2 z-10 flex gap-2">
+          <div
+            className="bg-green-950 text-white p-2 rounded-full cursor-pointer hover:bg-green-800 transition-colors"
+            onClick={handleEditClick}
+          >
+            <Pencil className="w-4 h-4" />
+          </div>
+          <div
+            className="bg-red-700 text-white p-2 rounded-full cursor-pointer hover:bg-red-600 transition-colors"
+            onClick={handleDeleteClick}
+          >
+            <Trash2 className="w-4 h-4" />
+          </div>
         </div>
       )}
       <div className="relative w-full h-[200px] overflow-hidden bg-green-900">
@@ -66,16 +96,16 @@ export function OutingCard({
       </div>
 
       <div className="w-full bg-gray-50 flex-1 flex flex-col gap-3 p-3">
-        <div className="flex justify-between items-start relative">
-          <div className="flex flex-col grow">
-            <h1 className="md:w-[220px] text-green-900 text-xl h-[56px] line-clamp-2">
+        <div className="flex justify-between items-start">
+          <div className="flex flex-col min-w-0 flex-1">
+            <h1 className="md:w-[220px] text-green-900 text-xl truncate md:whitespace-normal md:line-clamp-2 md:h-[56px]">
               {title}
             </h1>
             <p className="text-sm  text-gray-500 h-[80px] line-clamp-4 ">
               {description}
             </p>
           </div>
-          <div className="flex absolute right-0 top-0 gap-2 items-center">
+          <div className="flex gap-2 items-center shrink-0">
             <img src="/star.svg" />
             <p className="text-green-900 text-sm">
               {rating} ({ratingCount})
