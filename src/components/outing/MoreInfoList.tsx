@@ -8,6 +8,12 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+const difficultyMap: Record<string, string> = {
+  easy: "Fácil",
+  medium: "Médio",
+  hard: "Difícil",
+};
+
 function MoreInfoList({ data }: { data: OutingResponse }) {
   const moreInfoItems: {
     value: string;
@@ -18,11 +24,12 @@ function MoreInfoList({ data }: { data: OutingResponse }) {
   }[] = [];
 
   if (data.category.name === "Trail" && data.trail) {
+    const difficultyKey = data.trail.difficulty.toLocaleLowerCase();
     moreInfoItems.push(
       {
-        value: data.trail.difficulty.toLocaleLowerCase(),
+        value: difficultyMap[difficultyKey] ?? data.trail.difficulty,
         description: "Dificuldade",
-        type: data.trail.difficulty.toLocaleLowerCase() as
+        type: difficultyKey as
           | "easy"
           | "medium"
           | "hard",
