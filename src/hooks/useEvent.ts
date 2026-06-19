@@ -1,6 +1,8 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import type { OutingCarouselItem } from "../components/outing/TwoRowsCarousel";
-import { useOutings } from "../hooks/useOutings";
+import { useOutingsByCategory } from "../hooks/useOutingsByCategory";
+import { formatPrice } from "../helpers/formatPrice";
+import { getFirstPhotoUrl } from "../helpers/getFirstPhoto";
 import type { OutingResponse, Rating } from "../types/Outing";
 
 function mapToCarouselItem(outing: OutingResponse): OutingCarouselItem {
@@ -19,23 +21,18 @@ function mapToCarouselItem(outing: OutingResponse): OutingCarouselItem {
     ratingCount,
     title: outing.title,
     description: outing.content,
-    price: outing.price
-      ? `R$ ${outing.price.toFixed(2).replace(".", ",")}`
-      : "Grátis",
+    price: outing.price ? formatPrice(outing.price, true) : "Grátis",
     to: `/outing/${outing.slug}`,
     images:
       outing.photos.length > 0
         ? outing.photos.map((p) => p.url)
-        : ["/placeholder.jpg"],
+        : [getFirstPhotoUrl(outing.photos)],
   };
 }
 
 const useEventData = () => {
-  const { getOutings, isLoading, error: contextError } = useOutings();
-
-  const [rawOutings, setRawOutings] = useState<OutingResponse[]>([]);
-  const loading = isLoading;
-  const error = contextError;
+  const { rawOutings, loading, error, silentRefetch, patchItem } =
+    useOutingsByCategory("Event", 50);
 
   const eventsCarouselData = useMemo<OutingCarouselItem[] | null>(() => {
     if (rawOutings.length === 0) return null;
@@ -43,37 +40,6 @@ const useEventData = () => {
       .filter((outing) => outing.category.name === "Event")
       .map(mapToCarouselItem);
   }, [rawOutings]);
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await getOutings(50, 1, { category: "Event" });
-        const allOutings: OutingResponse[] = response.outings || [];
-        setRawOutings(allOutings);
-      } catch (e: any) {
-        console.error(e);
-      }
-    };
-
-    fetchEvents();
-  }, [getOutings]);
-
-  const silentRefetch = useCallback(async () => {
-    try {
-      const res = await fetch("http://localhost:3333/outing?take=50&page=1&category=Event");
-      const data = await res.json();
-      const allOutings: OutingResponse[] = data.items || [];
-      setRawOutings(allOutings);
-    } catch {
-      console.warn("silentRefetch events failed");
-    }
-  }, []);
-
-  const patchItem = useCallback((updated: OutingResponse) => {
-    setRawOutings((prev) =>
-      prev.map((o) => (o.id === updated.id ? updated : o))
-    );
-  }, []);
 
   return { eventsCarouselData, rawOutings, loading, error, silentRefetch, patchItem };
 };

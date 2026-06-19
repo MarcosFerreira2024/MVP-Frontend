@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useOutings } from "../hooks/useOutings";
+import { useMemo } from "react";
+import { useOutingsByCategory } from "../hooks/useOutingsByCategory";
+import { getFirstPhotoUrl } from "../helpers/getFirstPhoto";
 import type { OutingResponse } from "../types/Outing";
 
 export type TrailListItem = {
@@ -35,17 +36,13 @@ function mapToTrailItem(outing: OutingResponse): TrailListItem {
           : "N/A",
       navigateTo: `/outing/${outing.slug}`,
     },
-    image:
-      outing.photos.length > 0 ? outing.photos[0].url : "/placeholder.jpg",
+    image: getFirstPhotoUrl(outing.photos),
   };
 }
 
 const useTrailData = () => {
-  const { getOutings, isLoading, error: contextError } = useOutings();
-
-  const [rawOutings, setRawOutings] = useState<OutingResponse[]>([]);
-  const loading = isLoading;
-  const error = contextError;
+  const { rawOutings, loading, error, silentRefetch, patchItem } =
+    useOutingsByCategory("Trail", 8);
 
   const trailsData = useMemo<TrailListItem[] | null>(() => {
     if (rawOutings.length === 0) return null;
@@ -53,37 +50,6 @@ const useTrailData = () => {
       .filter((outing) => outing.category.name === "Trail" && outing.trail)
       .map(mapToTrailItem);
   }, [rawOutings]);
-
-  useEffect(() => {
-    const fetchTrails = async () => {
-      try {
-        const response = await getOutings(8, 1, { category: "Trail" });
-        const allOutings: OutingResponse[] = response.outings || [];
-        setRawOutings(allOutings);
-      } catch (e: any) {
-        console.error(e);
-      }
-    };
-
-    fetchTrails();
-  }, [getOutings]);
-
-  const silentRefetch = useCallback(async () => {
-    try {
-      const res = await fetch("http://localhost:3333/outing?take=8&page=1&category=Trail");
-      const data = await res.json();
-      const allOutings: OutingResponse[] = data.items || [];
-      setRawOutings(allOutings);
-    } catch {
-      console.warn("silentRefetch trails failed");
-    }
-  }, []);
-
-  const patchItem = useCallback((updated: OutingResponse) => {
-    setRawOutings((prev) =>
-      prev.map((o) => (o.id === updated.id ? updated : o))
-    );
-  }, []);
 
   return { trailsData, rawOutings, loading, error, silentRefetch, patchItem };
 };
