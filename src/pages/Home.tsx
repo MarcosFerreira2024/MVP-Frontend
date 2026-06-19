@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import toast from "react-hot-toast";
 import Section from "../components/home/Section";
 import { TwoRowsCarousel } from "../components/outing/TwoRowsCarousel";
 import ParkCards from "../components/outing/parks/ParkCards";
@@ -69,9 +71,9 @@ function Home() {
     }
   };
 
-  if (error) {
-    return <div>Erro ao carregar dados: {error}</div>;
-  }
+  useEffect(() => {
+    if (error) toast.error(error, { id: "home-fetch-error" });
+  }, [error]);
 
   return (
     <>
