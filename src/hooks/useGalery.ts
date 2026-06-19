@@ -46,7 +46,7 @@ function useGalery() {
       window.removeEventListener("keydown", handleEsc);
       window.removeEventListener("keydown", handleF);
     };
-  });
+  }, []);
 
   const closeFullScreenImage = useCallback(() => {
     setSelectedImage(undefined);
