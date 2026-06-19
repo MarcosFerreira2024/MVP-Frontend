@@ -1,197 +1,96 @@
-// src/hooks/useOutingCreation.ts
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import {
-  validateImageJson,
-  outingStep1Schema,
-  outingStep2Schema,
-  outingStep3Schema,
-} from "../helpers/validationSchemas";
-import { useNavigate } from "react-router-dom"; // Importar useNavigate
-import { createOuting, type OutingPayload } from "../actions/createOuting"; // Importar a nova ação
+import { useNavigate } from "react-router-dom";
+import { useFormState, maxStep, minStep } from "./useFormState";
+import type { OutingFormState } from "./useFormState";
+import { formatZodErrors } from "../helpers/formatZodErrors";
+import { buildAndSubmitOuting } from "../helpers/buildOutingPayload";
+import { categories, cities } from "../helpers/parks";
+import { validateImageJson, outingStep1Schema, outingStep2Schema, outingStep3Schema } from "../helpers/validationSchemas";
 
-// --- Definições de Tipos Comuns ---
-export type DataItem = { id: number; name: string };
-export type SetStringDispatch = React.Dispatch<React.SetStateAction<string>>;
-export type SetDataItemDispatch = React.Dispatch<
-  React.SetStateAction<DataItem>
->;
-export type SetNumberDispatch = React.Dispatch<
-  React.SetStateAction<number | string>
->;
+export type { DataItem, SetStringDispatch, SetDataItemDispatch, SetNumberDispatch } from "./useFormState";
 
-// --- Dados de Referência ---
-const categories: DataItem[] = [
-  { id: 1, name: "Evento" },
-  { id: 2, name: "Trilha" },
-  { id: 3, name: "Parque" },
-];
-const cities: DataItem[] = [
-  { id: 1, name: "Teresópolis" },
-  { id: 2, name: "Petrópolis" },
-  { id: 3, name: "Nova Friburgo" },
-  { id: 4, name: "Guapimirim" },
-  { id: 5, name: "Cachoeiras de Macacu" },
-  { id: 6, name: "São José do Vale do Rio Preto" },
-  { id: 7, name: "Sumidouro" },
-  { id: 8, name: "Sapucaia" },
-  { id: 9, name: "Areal" },
-];
-
-// Mapeamento de Categoria para URL
-const categoryUrlMap: Record<string, string> = {
-  Evento: "event",
-  Trilha: "trail",
-  Parque: "park",
-};
-
-// =================================================================
-// 2. FUNÇÃO AUXILIAR DE ERROS
-// =================================================================
-
-// Converte o array de erros detalhados do Zod para um objeto simples { campo: mensagem }
-const formatZodErrors = (issues: z.ZodIssue[]): Map<string, string> => {
-  const errors: Map<string, string> = new Map();
-  for (const issue of issues) {
-    const fieldName = String(issue.path[0]); // Ensure fieldName is string
-    if (!errors.has(fieldName)) {
-      errors.set(fieldName, issue.message);
-    }
+function buildStepData(state: OutingFormState, step: number) {
+  if (step === 1) {
+    return { title: state.title, description: state.description, city: state.city, category: state.category, price: state.price, slug: state.slug };
   }
-  return errors;
-};
+  if (step === 2) {
+    return {
+      category: state.category,
+      latitude: state.latitude,
+      longitude: state.longitude,
+      maximumCapacityEvent: state.maximumCapacityEvent,
+      startDate: state.startDate,
+      endDate: state.endDate,
+      duration: state.duration,
+      distance: state.distance,
+      biodiversity: state.biodiversity,
+      maximumCapacityPark: state.maximumCapacityPark,
+    };
+  }
+  if (step === 3) {
+    return { imageJson: state.imageJson };
+  }
+  return {};
+}
+
+function getSchema(step: number): z.ZodSchema {
+  if (step === 1) return outingStep1Schema;
+  if (step === 2) return outingStep2Schema;
+  if (step === 3) return outingStep3Schema;
+  return z.object({});
+}
 
 export const useOutingCreation = () => {
-  const navigate = useNavigate(); // Inicializar useNavigate
-  const maxStep = 3;
-  const minStep = 1;
+  const navigate = useNavigate();
+  const { formState, setters, resetForm } = useFormState();
+  const { setImageJson } = setters;
 
   const [currentStep, setCurrentStep] = useState(minStep);
-  const [formErrors, setFormErrors] = useState<Map<string, string>>(new Map()); // Alterado para Map para robustez
+  const [formErrors, setFormErrors] = useState<Map<string, string>>(new Map());
   const [isStep3Valid, setIsStep3Valid] = useState(false);
-  const [loading, setLoading] = useState(false); // Adicionado estado de loading para a API
+  const [loading, setLoading] = useState(false);
 
   const canGoBack = currentStep > minStep;
   const canGoForward = currentStep < maxStep;
 
-  // --- ESTADOS DO FORMULÁRIO ---
-  // Passo 1
-  const [city, setCity] = useState<DataItem>(cities[0]);
-  const [category, setCategory] = useState<DataItem>(categories[0]);
-  const [description, setDescription] = useState("");
-  const [title, setTitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [slug, setSlug] = useState("");
-  // Passo 2
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
-  const [maximumCapacityEvent, setMaximumCapacityEvent] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [difficulty, setDifficulty] = useState("EASY");
-  const [duration, setDuration] = useState<number | string>("");
-  const [distance, setDistance] = useState<number | string>("");
-  const [roundTrip, setRoundTrip] = useState(true);
-  const [biodiversity, setBiodiversity] = useState("");
-  const [maximumCapacityPark, setMaximumCapacityPark] = useState("");
-  // Passo 3
-  const [imageJson, setImageJson] = useState("");
-
-  // Função para resetar o formulário
-  const resetForm = useCallback(() => {
-    setCurrentStep(minStep);
-    setFormErrors(new Map()); // Resetar para Map vazio
-    setIsStep3Valid(false);
-    // Passo 1
-    setCity(cities[0]);
-    setCategory(categories[0]);
-    setDescription("");
-    setTitle("");
-    setPrice("");
-    setSlug("");
-    // Passo 2
-    setLatitude("");
-    setLongitude("");
-    setMaximumCapacityEvent("");
-    setStartDate("");
-    setEndDate("");
-    setDifficulty("EASY");
-    setDuration("");
-    setDistance("");
-    setRoundTrip(true);
-    setBiodiversity("");
-    setMaximumCapacityPark("");
-    // Passo 3
-    setImageJson("");
-  }, [minStep]);
-
-  // --- FUNÇÃO DE VALIDAÇÃO ZOD ---
   const validateStep = useCallback(
     (step: number): boolean => {
-      let schema: z.ZodSchema;
-      let dataToValidate: any;
-
-      if (step === 1) {
-        schema = outingStep1Schema; // Usar o schema exportado
-        dataToValidate = { title, description, city, category, price, slug };
-      } else if (step === 2) {
-        schema = outingStep2Schema; // Usar o schema exportado
-        dataToValidate = {
-          category,
-          latitude,
-          longitude,
-          maximumCapacityEvent,
-          startDate,
-          endDate,
-          duration,
-          distance,
-          biodiversity,
-          maximumCapacityPark,
-        };
-      } else if (step === 3) {
-        schema = outingStep3Schema; // Usar o schema exportado
-        dataToValidate = { imageJson };
-      } else {
-        setFormErrors(new Map());
-        return true;
-      }
-
+      const schema = getSchema(step);
+      const dataToValidate = buildStepData(formState, step);
       const result = schema.safeParse(dataToValidate);
 
       if (result.success) {
         setFormErrors(new Map());
         return true;
-      } else {
-        const newErrors = formatZodErrors(result.error.issues);
-        setFormErrors(newErrors);
-        return false;
       }
+      const newErrors = formatZodErrors(result.error.issues);
+      setFormErrors(newErrors);
+      return false;
     },
     [
-      title,
-      description,
-      city,
-      category,
-      price,
-      slug,
-      latitude,
-      longitude,
-      maximumCapacityEvent,
-      startDate,
-      endDate,
-      duration,
-      distance,
-      biodiversity,
-      maximumCapacityPark,
-      imageJson,
+      formState.title,
+      formState.description,
+      formState.city,
+      formState.category,
+      formState.price,
+      formState.slug,
+      formState.latitude,
+      formState.longitude,
+      formState.maximumCapacityEvent,
+      formState.startDate,
+      formState.endDate,
+      formState.duration,
+      formState.distance,
+      formState.biodiversity,
+      formState.maximumCapacityPark,
+      formState.imageJson,
       setFormErrors,
     ]
   );
 
-  // --- FUNÇÃO DE SUBMISSÃO FINAL ---
   const handleSubmit = useCallback(async () => {
-    // 1. Validar todos os passos novamente antes de submeter
     let allStepsValid = true;
     for (let i = 1; i <= maxStep; i++) {
       if (!validateStep(i)) {
@@ -200,7 +99,7 @@ export const useOutingCreation = () => {
       }
     }
 
-    const finalImageJsonValidation = validateImageJson(imageJson);
+    const finalImageJsonValidation = validateImageJson(formState.imageJson);
     if (!finalImageJsonValidation.success) {
       toast.error(
         finalImageJsonValidation.message ||
@@ -209,105 +108,18 @@ export const useOutingCreation = () => {
       allStepsValid = false;
     }
 
-    if (!allStepsValid) {
-      console.log("Formulário contém erros. Por favor, revise.");
-      return; // Parar se houver erros de validação
-    }
+    if (!allStepsValid) return;
 
-    // 2. Construir o payload para a API
-    let parsedImages: { alt: string; url: string }[] = [];
-    try {
-      parsedImages = JSON.parse(imageJson);
-      if (
-        !Array.isArray(parsedImages) ||
-        parsedImages.some((img) => !img.url || !img.alt)
-      ) {
-        throw new Error("JSON de imagens inválido.");
-      }
-    } catch (e) {
-      toast.error("Formato do JSON de imagens inválido.");
-      return;
-    }
-
-    const outingPayload: OutingPayload = {
-      title,
-      content: description, // 'content' from 'description'
-      price: parseFloat(price), // Parse price to number
-      slug,
-      publicAudience: "ALL", // Hardcoded as per example, no UI for this yet
-      categoryId: category.id, // Use category ID
-      location: {
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        cityId: city.id, // Use city ID
-      },
-      photos: parsedImages,
-      openHours: [], // No UI for this yet, defaulting to empty array
-    };
-
-    // 3. Adicionar dados específicos da categoria
-    if (category.name === "Trilha") {
-      outingPayload.trail = {
-        difficulty,
-        duration: Number(duration),
-        distance: Number(distance),
-        roundTrip,
-      };
-    } else if (category.name === "Parque") {
-      outingPayload.park = {
-        biodiversity,
-        maximumCapacity: Number(maximumCapacityPark),
-      };
-    } else if (category.name === "Evento") {
-      outingPayload.event = {
-        maximumCapacity: Number(maximumCapacityEvent),
-        startDate: new Date(startDate).toISOString(), // Format to ISO string
-        endDate: new Date(endDate).toISOString(), // Format to ISO string
-      };
-    }
-
-    // 4. Chamar a API
     setLoading(true);
     try {
-      // Passar o categoryPath como segundo argumento para createOuting
-      const categoryPath = categoryUrlMap[category.name];
-      if (!categoryPath) {
-        throw new Error("Categoria inválida para criação de passeio.");
-      }
-      await createOuting(outingPayload, categoryPath);
-      toast.success("Passeio criado com sucesso!");
-      resetForm(); // Limpar o formulário
-      // Redirecionamento dinâmico
-      navigate(`/outing/${categoryPath}`);
-    } catch (error: any) {
+      await buildAndSubmitOuting(formState, formState.imageJson, navigate, resetForm);
+    } catch (error: unknown) {
       console.error("Erro ao criar passeio:", error);
-      toast.error(error.message || "Falha ao criar passeio.");
+      toast.error(error instanceof Error ? error.message : "Falha ao criar passeio.");
     } finally {
       setLoading(false);
     }
-  }, [
-    title,
-    description,
-    price,
-    slug,
-    city,
-    category,
-    latitude,
-    longitude,
-    maximumCapacityEvent,
-    startDate,
-    endDate,
-    duration,
-    distance,
-    biodiversity,
-    maximumCapacityPark,
-    imageJson,
-    maxStep,
-    validateStep, // memoized validateStep
-    resetForm,
-    navigate,
-    setLoading,
-  ]);
+  }, [formState, navigate, resetForm, validateStep, setLoading]);
 
   function increaseStep() {
     if (currentStep === maxStep) {
@@ -329,13 +141,12 @@ export const useOutingCreation = () => {
     if (canGoBack) {
       setCurrentStep(currentStep - 1);
     }
-    setFormErrors(new Map()); // Resetar para Map vazio
+    setFormErrors(new Map());
   }
 
   useEffect(() => {
     if (formErrors.size > 0) {
-      // Verifica se há erros no Map
-      const firstErrorMessage = formErrors.values().next().value; // Pega o primeiro valor
+      const firstErrorMessage = formErrors.values().next().value;
       if (firstErrorMessage) {
         toast.error(firstErrorMessage);
       }
@@ -343,52 +154,52 @@ export const useOutingCreation = () => {
   }, [formErrors]);
 
   const step1Props = {
-    title,
-    setTitle,
-    city,
-    setCity,
+    title: formState.title,
+    setTitle: setters.setTitle,
+    city: formState.city,
+    setCity: setters.setCity,
     cities,
-    category,
-    setCategory,
+    category: formState.category,
+    setCategory: setters.setCategory,
     categories,
-    description,
-    setDescription,
-    price,
-    setPrice,
-    slug,
-    setSlug,
+    description: formState.description,
+    setDescription: setters.setDescription,
+    price: formState.price,
+    setPrice: setters.setPrice,
+    slug: formState.slug,
+    setSlug: setters.setSlug,
     errors: formErrors,
   };
 
   const step2Props = {
-    category,
-    latitude,
-    setLatitude,
-    longitude,
-    setLongitude,
-    maximumCapacityEvent,
-    setMaximumCapacityEvent,
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    difficulty,
-    setDifficulty,
-    duration,
-    setDuration,
-    distance,
-    setDistance,
-    roundTrip,
-    setRoundTrip,
-    biodiversity,
-    setBiodiversity,
-    maximumCapacityPark,
-    setMaximumCapacityPark,
+    category: formState.category,
+    latitude: formState.latitude,
+    setLatitude: setters.setLatitude,
+    longitude: formState.longitude,
+    setLongitude: setters.setLongitude,
+    maximumCapacityEvent: formState.maximumCapacityEvent,
+    setMaximumCapacityEvent: setters.setMaximumCapacityEvent,
+    startDate: formState.startDate,
+    setStartDate: setters.setStartDate,
+    endDate: formState.endDate,
+    setEndDate: setters.setEndDate,
+    difficulty: formState.difficulty,
+    setDifficulty: setters.setDifficulty,
+    duration: formState.duration,
+    setDuration: setters.setDuration,
+    distance: formState.distance,
+    setDistance: setters.setDistance,
+    roundTrip: formState.roundTrip,
+    setRoundTrip: setters.setRoundTrip,
+    biodiversity: formState.biodiversity,
+    setBiodiversity: setters.setBiodiversity,
+    maximumCapacityPark: formState.maximumCapacityPark,
+    setMaximumCapacityPark: setters.setMaximumCapacityPark,
     errors: formErrors,
   };
 
   const step3Props = {
-    imageJson,
+    imageJson: formState.imageJson,
     setImageJson,
     setIsValid: setIsStep3Valid,
   };
@@ -405,7 +216,7 @@ export const useOutingCreation = () => {
     step1Props,
     step2Props,
     step3Props,
-    loading, // Expor o estado de loading
-    resetForm, // Expor resetForm
+    loading,
+    resetForm,
   };
 };
