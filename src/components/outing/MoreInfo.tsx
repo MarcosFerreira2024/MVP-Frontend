@@ -1,10 +1,12 @@
 import type { LucideIcon } from "lucide-react";
+import Tooltip from "../Tooltip";
 
 function MoreInfo({
   value,
   dangerous,
   type,
   icon: Icon,
+  description,
 }: {
   description: string;
   value: string;
@@ -37,10 +39,12 @@ function MoreInfo({
 
   return (
     <li className="flex flex-col  min-w-[100px]  font-segoe capitalize  font-semibold">
-      <h1 className={`${colorClass} text-base flex items-center gap-1.5`}>
-        {Icon && <Icon className="w-5 h-5 " />}
-        {value}
-      </h1>
+      <Tooltip text={description}>
+        <h1 className={`${colorClass} text-base flex items-center gap-1.5`}>
+          {Icon && <Icon className="w-5 h-5 " />}
+          {value}
+        </h1>
+      </Tooltip>
     </li>
   );
 }
