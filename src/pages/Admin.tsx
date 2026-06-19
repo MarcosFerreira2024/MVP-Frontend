@@ -1,3 +1,4 @@
+import { API_URL } from "../helpers/api";
 import useModal from "../hooks/useModal";
 import { OutingCreationModal } from "../components/admin/outing/OutingCreationModal";
 import Button from "../components/Button";
@@ -12,7 +13,7 @@ function Admin() {
           Criar Passeio
         </Button>
 
-        <a href="http://localhost:3333/api/docs" target="_blank" rel="noopener noreferrer">
+        <a href={`${API_URL}/api/docs`} target="_blank" rel="noopener noreferrer">
           <Button size="sm">API Scalar</Button>
         </a>
 

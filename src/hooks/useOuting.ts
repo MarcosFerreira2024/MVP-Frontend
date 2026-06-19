@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { API_URL } from "../helpers/api";
 import type { OutingResponse } from "../types/Outing";
 
 function useOuting(slug: string) {
@@ -17,14 +18,14 @@ function useOuting(slug: string) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:3333/outing/${slug}`);
+      const response = await fetch(`${API_URL}/outing/${slug}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data: OutingResponse = await response.json();
       setOutingData(data);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -33,12 +34,12 @@ function useOuting(slug: string) {
   const silentRefetch = useCallback(async () => {
     if (!slug) return;
     try {
-      const response = await fetch(`http://localhost:3333/outing/${slug}`);
+      const response = await fetch(`${API_URL}/outing/${slug}`);
       if (response.ok) {
         const data: OutingResponse = await response.json();
         setOutingData(data);
       }
-    } catch (e) {}
+    } catch (_) {}
   }, [slug]);
 
   const removeRating = useCallback((ratingId: string) => {
