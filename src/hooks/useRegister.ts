@@ -33,20 +33,16 @@ export function useRegister() {
       ) {
         return toast.error("Preencha todos os campos");
       }
-      registerSchema.parse(form); // Validate form data with Zod
-
-      // If Zod validation passes, proceed with API call
+      registerSchema.parse(form);
       await toast.promise(
         handleRegister(form.name, form.email, form.password),
         {
           loading: "Registrando usuário...",
           success: "Cadastro realizado com sucesso!",
-          error: (err) => handleErrors(err), // handleErrors returns the message string
+          error: (err) => handleErrors(err),
         }
       );
     } catch (error) {
-      // This catch block will now primarily handle Zod errors
-      // and any unexpected errors from toast.promise itself if it fails to resolve/reject
       toast.error(handleErrors(error));
     } finally {
       setLoading(false);

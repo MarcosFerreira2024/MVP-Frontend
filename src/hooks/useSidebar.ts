@@ -32,7 +32,7 @@ function useSidebar() {
       if (newCategory !== currentCategory) {
         setSearchParams((prev) => {
           prev.set("category", newCategory);
-          prev.set("page", "1"); // Reset page to 1 on category change
+          prev.set("page", "1");
           return prev;
         });
       }

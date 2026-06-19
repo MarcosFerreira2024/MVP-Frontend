@@ -29,27 +29,24 @@ export function useLogin() {
       if (form.email.trim() === "" && form.password.trim() === "") {
         return toast.error("Preencha todos os campos");
       }
-      loginSchema.parse(form); // Validate form data with Zod
-
-      // Use toast.promise to wrap the asynchronous login process
+      loginSchema.parse(form);
       const token = await toast.promise(
         handleLogin(form.email, form.password),
         {
           loading: "Fazendo login...",
           success: "Login realizado com sucesso!",
           error: (err: any) => {
-            const errorMessage = handleErrors(err); // Get the error message string
+            const errorMessage = handleErrors(err);
 
             if (errorMessage.includes("Usuário nao verificado")) {
-              openModal(form.email); // Pass the email to openModal
-              return "Verifique seu email para concluir o login."; // Custom message for this scenario
+              openModal(form.email);
+              return "Verifique seu email para concluir o login.";
             }
-            return errorMessage; // For other errors, return the message to toast
+            return errorMessage;
           },
         }
       );
 
-      // If handleLogin resolves (success), then call useUser's login function
       await login(token);
       navigate("/");
     } catch (error: unknown) {
