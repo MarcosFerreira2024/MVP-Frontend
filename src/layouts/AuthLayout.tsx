@@ -8,7 +8,7 @@ function AuthLayout({ children }: AuthProps) {
   return (
     <div className="flex relative justify-center w-full h-full bg-green-950">
       <div className="absolute  top-4 lg:left-4">
-        <img src="unifeso.svg" alt="" />
+        <img src="unifeso.svg" alt="Unifeso" />
       </div>
       <div className="flex-1 h-screen px-4 max-w-[600px] pt-20  flex justify-center lg:justify-start">
         {children}

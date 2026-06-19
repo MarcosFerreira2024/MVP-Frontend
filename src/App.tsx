@@ -4,13 +4,11 @@ import Register from "./pages/Register";
 import { Toaster } from "react-hot-toast";
 import { CodeContextProvider } from "./context/CodeContext";
 import Home from "./pages/Home";
-import Testes from "./pages/Testes";
 import ScrollToHash from "./components/ScrollToHash";
 import { ScrollTop } from "./components/ScrollTop";
 import Outing from "./pages/Outing";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
-import { OutingsProvider } from "./context/OutingsContext";
 import { useUser } from "./context/UserContext";
 import MainLayout from "./layouts/MainLayout";
 import RedirectIfAuth from "./layouts/RedirectIfAuth";
@@ -21,7 +19,7 @@ function App() {
   const { isAuthenticated, logout } = useUser();
 
   return (
-    <OutingsProvider>
+    <>
       <Logout logout={logout} isAuthenticated={isAuthenticated} />
       <BrowserRouter>
         <Toaster
@@ -54,7 +52,6 @@ function App() {
             <Route path="/search" element={<Search />} />
             <Route path="/outing/:slug" element={<Outing />} />
             <Route element={<AdminRoute />}>
-              <Route path="/testes" element={<Testes />} />
               <Route path="/admin" element={<Admin />} />
             </Route>
           </Route>
@@ -72,7 +69,7 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </OutingsProvider>
+    </>
   );
 }
 

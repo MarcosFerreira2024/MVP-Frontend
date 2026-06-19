@@ -39,13 +39,10 @@ export const validateImageJson = (jsonString: string) => {
     if (error instanceof z.ZodError) {
       return { success: false, message: error.issues[0].message };
     }
-    // Handle case where JSON.parse fails (e.g., empty string, malformed JSON)
     return { success: false, message: "Formato JSON inválido." };
   }
 };
 
-// Re-defining step1Schema for useOutingCreation.ts, as it was not exported before.
-// Also, adding more robust validation as discussed.
 export const outingStep1Schema = z.object({
   title: z.string().trim().min(5, "O título deve ter pelo menos 5 caracteres.").max(100, "O título não deve exceder 100 caracteres."),
   description: z
@@ -62,11 +59,10 @@ export const outingStep1Schema = z.object({
     .min(3, "O slug é obrigatório e deve ter pelo menos 3 caracteres.")
     .max(100, "O slug não deve exceder 100 caracteres.")
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "O slug deve conter apenas letras minúsculas, números e hífens."),
-  city: z.object({ id: z.number(), name: z.string() }), // Assuming DataItem structure
-  category: z.object({ id: z.number(), name: z.string() }), // Assuming DataItem structure
+  city: z.object({ id: z.number(), name: z.string() }),
+  category: z.object({ id: z.number(), name: z.string() }),
 });
 
-// Re-defining step2Schema for useOutingCreation.ts
 export const outingStep2Schema = z
   .object({
     category: z.object({ id: z.number(), name: z.string() }),
@@ -84,7 +80,6 @@ export const outingStep2Schema = z
   .superRefine((data, ctx) => {
     const categoryName = data.category.name;
 
-    // Lógica para Evento
     if (categoryName === "Evento") {
       const capacity = Number(data.maximumCapacityEvent);
       if (isNaN(capacity) || capacity <= 0) {
@@ -97,7 +92,6 @@ export const outingStep2Schema = z
       }
     }
 
-    // Lógica para Trilha
     else if (categoryName === "Trilha") {
       const durationNum = Number(data.duration);
       if (isNaN(durationNum) || durationNum <= 0) {
@@ -109,9 +103,8 @@ export const outingStep2Schema = z
       }
     }
 
-    // Lógica para Parque
     else if (categoryName === "Parque") {
-      if (!data.biodiversity?.trim()) { // Use optional chaining for trim
+      if (!data.biodiversity?.trim()) {
         ctx.addIssue({ code: "custom", message: "O nível de biodiversidade é obrigatório.", path: ["biodiversity"] });
       }
       const capacityParkNum = Number(data.maximumCapacityPark);
@@ -121,7 +114,6 @@ export const outingStep2Schema = z
     }
   });
 
-// Re-defining step3Schema for useOutingCreation.ts
 export const outingStep3Schema = z.object({
     imageJson: z.string().refine((val) => {
         try {
