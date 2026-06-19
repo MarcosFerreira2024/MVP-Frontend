@@ -73,10 +73,10 @@ export const OutingsProvider: React.FC<{ children: ReactNode }> = ({
         console.log(data);
         setCache((prevCache) => new Map(prevCache).set(cacheKey, data));
         return data;
-      } catch (err: any) {
-        console.log(err);
-        setError(err.message || "Failed to fetch outings.");
-        throw err;
+      } catch (error: unknown) {
+        console.log(error);
+        setError(error instanceof Error ? error.message : "Failed to fetch outings.");
+        throw error;
       } finally {
         setIsLoading(false);
       }

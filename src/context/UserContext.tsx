@@ -8,6 +8,8 @@ import {
 import Cookies from "js-cookie";
 import type { User } from "../types/User";
 import toast from "react-hot-toast";
+import { getAvatarUrl } from "../helpers/avatar";
+import { API_URL } from "../helpers/api";
 
 interface UserContextType {
   user: User | null;
@@ -35,7 +37,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3333/user", {
+      const response = await fetch(`${API_URL}/user`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -72,17 +74,16 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
   };
 
-  const isAuthenticated = !!user;
-  const isAdmin = user?.role === "ADMIN";
+  const userWithAvatar = user
+    ? { ...user, userPhoto: getAvatarUrl(user.name, user.userPhoto) }
+    : null;
 
-  if (user) {
-    user.userPhoto =
-      user.userPhoto ?? `/avatars/${([...user.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 9) + 1}.png`;
-  }
+  const isAuthenticated = !!userWithAvatar;
+  const isAdmin = userWithAvatar?.role === "ADMIN";
 
   return (
     <UserContext.Provider
-      value={{ user, isAuthenticated, isAdmin, loading, login, logout }}
+      value={{ user: userWithAvatar, isAuthenticated, isAdmin, loading, login, logout }}
     >
       {children}
     </UserContext.Provider>
