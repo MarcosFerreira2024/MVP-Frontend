@@ -1,188 +1,52 @@
-import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import Select from "../components/Select";
 import OutingCardList from "../components/outing/OutingCardList";
 import OutingCardListSkeleton from "../components/outing/OutingCardListSkeleton";
 import { Pagination } from "../components/Pagination";
 import CategorySidebar from "../components/outing/CategorySidebar";
-import { useOutings } from "../hooks/useOutings";
 import OutingEditModal from "../components/admin/outing/OutingEditModal";
 import ConfirmDialog from "../components/ConfirmDialog";
-import { deleteOuting } from "../actions/deleteOuting";
-import type { OutingCardProps } from "../components/outing/OutingCard";
-import type { OutingResponse } from "../types/Outing";
-import toast from "react-hot-toast";
-
-const TAKE_PER_PAGE = 12;
-
-const transformOutingResponseToOutingCardProps = (
-  outing: OutingResponse,
-): OutingCardProps => {
-  const totalRating = outing.ratings.reduce((sum, r) => sum + r.rating, 0);
-  const rating =
-    outing.ratings.length > 0
-      ? (totalRating / outing.ratings.length).toFixed(1)
-      : "0.0";
-  const ratingCount = outing.ratings.length;
-
-  return {
-    id: outing.id,
-    rating: rating,
-    ratingCount: ratingCount,
-    title: outing.title,
-    description: outing.content,
-    price: outing.price.toFixed(2).replace(".", ","),
-    to: `/outing/${outing.slug}`,
-    images: outing.photos.map((photo) => photo.url),
-  };
-};
+import { useSearchOutings } from "../hooks/useSearchOutings";
+import { useOutingCrud } from "../hooks/useOutingCrud";
 
 function Search() {
   const [searchParams] = useSearchParams();
-  const { getOutings, isLoading, error: contextError } = useOutings();
+  const {
+    outings,
+    rawOutings,
+    totalItems,
+    hasSearched,
+    isLoading,
+    error,
+    silentRefetch,
+    TAKE_PER_PAGE,
+  } = useSearchOutings();
+
+  const {
+    editingOuting,
+    isEditModalOpen,
+    deletingOutingId,
+    deletingLoading,
+    handleEditOuting,
+    handleDeleteOuting,
+    confirmDelete,
+    closeEditModal,
+    cancelDelete,
+  } = useOutingCrud(rawOutings);
 
   const title = searchParams.get("title");
   const sortBy = searchParams.get("sortBy");
   const orderBy = searchParams.get("orderBy");
-  const page = searchParams.get("page");
-  const category = searchParams.get("category");
-  const currentPage = parseInt(page || "1");
 
-  const [outings, setOutings] = useState<OutingCardProps[]>([]);
-  const [rawOutings, setRawOutings] = useState<OutingResponse[]>([]);
-  const [totalItems, setTotalItems] = useState(0);
-  const [hasSearched, setHasSearched] = useState(false);
-  const error = contextError;
-
-  const [editingOuting, setEditingOuting] = useState<OutingResponse | null>(
-    null,
-  );
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [deletingOutingId, setDeletingOutingId] = useState<string | null>(null);
-  const [deletingLoading, setDeletingLoading] = useState(false);
-
-  const buildParams = useCallback(() => {
-    const params = new URLSearchParams({
-      take: String(TAKE_PER_PAGE),
-      page: String(currentPage),
-    });
-    if (sortBy) params.set("sortBy", sortBy);
-    if (orderBy) params.set("orderBy", orderBy);
-    if (title) params.set("title", title);
-    if (category && category !== "all") params.set("category", category);
-    return params;
-  }, [currentPage, sortBy, orderBy, title, category]);
-
-  const fetchSearchOutings = useCallback(async () => {
-    setHasSearched(false);
-    try {
-      const data = await getOutings(TAKE_PER_PAGE, currentPage, {
-        sortBy: sortBy ?? undefined,
-        orderBy: orderBy ?? undefined,
-        title: title ?? undefined,
-        category: category === "all" ? undefined : (category ?? undefined),
-      });
-      if (
-        data &&
-        Array.isArray(data.outings) &&
-        typeof data.totalItems === "number"
-      ) {
-        setRawOutings(data.outings);
-        const transformedOutings = data.outings.map(
-          transformOutingResponseToOutingCardProps,
-        );
-        setOutings(transformedOutings);
-        setTotalItems(data.totalItems);
-      } else if (data && typeof data.totalItems === "number") {
-        setRawOutings([]);
-        setOutings([]);
-        setTotalItems(data.totalItems);
-      } else {
-        setRawOutings([]);
-        setOutings([]);
-        setTotalItems(0);
-      }
-    } catch (err: unknown) {
-      console.error(err);
-      setRawOutings([]);
-      setOutings([]);
-      setTotalItems(0);
-    } finally {
-      setHasSearched(true);
-    }
-  }, [sortBy, orderBy, title, category, currentPage, getOutings]);
-
-  const silentRefetch = useCallback(async () => {
-    const params = buildParams();
-    try {
-      const res = await fetch(`http://localhost:3333/outing?${params}`);
-      const data = await res.json();
-      if (Array.isArray(data.outings)) {
-        setRawOutings(data.outings);
-        setOutings(data.outings.map(transformOutingResponseToOutingCardProps));
-        setTotalItems(data.totalItems ?? 0);
-      }
-    } catch {
-      console.warn("silentRefetch failed");
-    }
-  }, [buildParams]);
-
-  useEffect(() => {
-    fetchSearchOutings();
-  }, [fetchSearchOutings]);
-
-  const handleEditOuting = (id: string) => {
-    const outing = rawOutings.find((o) => o.id === id);
-    if (outing) {
-      setEditingOuting(outing);
-      setIsEditModalOpen(true);
-    }
-  };
-
-  const handleDeleteOuting = (id: string) => {
-    setDeletingOutingId(id);
-  };
-
-  const confirmDelete = async () => {
-    if (!deletingOutingId) return;
-    setDeletingLoading(true);
-    try {
-      await deleteOuting(deletingOutingId);
-      toast.success("Passeio excluído com sucesso!");
-      setDeletingOutingId(null);
-      silentRefetch();
-    } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : "Erro ao excluir passeio.",
-      );
-    } finally {
-      setDeletingLoading(false);
-    }
-  };
-
-  const handleEditSuccess = () => {
-    silentRefetch();
-  };
+  const handleConfirmDelete = () => confirmDelete(silentRefetch);
 
   const dataSort = [
-    {
-      value: "title",
-      label: "Nome",
-    },
-    {
-      value: "city",
-      label: "Cidade",
-    },
+    { value: "title", label: "Nome" },
+    { value: "city", label: "Cidade" },
   ];
   const dataOrder = [
-    {
-      value: "desc",
-      label: "Decrescente",
-    },
-    {
-      value: "asc",
-      label: "Crescente",
-    },
+    { value: "desc", label: "Decrescente" },
+    { value: "asc", label: "Crescente" },
   ];
 
   return (
@@ -243,11 +107,8 @@ function Search() {
       <OutingEditModal
         isOpen={isEditModalOpen}
         outing={editingOuting}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingOuting(null);
-        }}
-        onSuccess={handleEditSuccess}
+        onClose={closeEditModal}
+        onSuccess={() => silentRefetch()}
       />
 
       <ConfirmDialog
@@ -256,8 +117,8 @@ function Search() {
         message="Tem certeza que deseja excluir este passeio? Esta ação não pode ser desfeita."
         confirmLabel="Excluir"
         cancelLabel="Cancelar"
-        onConfirm={confirmDelete}
-        onCancel={() => setDeletingOutingId(null)}
+        onConfirm={handleConfirmDelete}
+        onCancel={cancelDelete}
         loading={deletingLoading}
       />
     </div>
