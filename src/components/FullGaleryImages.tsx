@@ -44,6 +44,7 @@ export function FullGaleryImages({
             />
             <button
               onClick={handleBackdropClick}
+              aria-label="Fechar"
               className="absolute border border-green-900 main-shadow bg-gray-50 w-8 h-8 hover:rotate-24 duration-300 ease-in-out rounded-full flex items-center justify-center top-2 right-2"
             >
               <X className="w-5 h-5   text-green-900" />

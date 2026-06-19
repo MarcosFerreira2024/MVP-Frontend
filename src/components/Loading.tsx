@@ -1,20 +1,20 @@
 import { useEffect, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
+import { useLoading } from "../hooks/useLoading";
 
 function Loading() {
-  // const { isLoading } = useLoading();
-
-  const isLoading = false;
+  const { isLoading } = useLoading();
 
   const [visible, setVisible] = useState(false);
   const startTimeRef = useRef<number | null>(null);
 
   const ref = useRef<HTMLDivElement | null>(null);
 
+  useBodyScrollLock(isLoading);
+
   useEffect(() => {
     if (isLoading) {
-      document.body.style.overflow = "hidden";
       if (ref.current) {
         ref.current.style.position = "fixed";
       }
@@ -29,7 +29,6 @@ function Loading() {
 
       const timer = setTimeout(() => {
         setVisible(false);
-        document.body.style.overflow = "";
         if (ref.current) {
           ref.current.style.display = "none";
         }
@@ -49,7 +48,7 @@ function Loading() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          style={{ pointerEvents: visible ? "auto" : "none" }} // Added conditional pointerEvents
+          style={{ pointerEvents: visible ? "auto" : "none" }}
           className="flex items-center w-screen fixed z-9999999 top-0 left-0 h-screen justify-center gap-1 bg-gray-100"
         >
           <motion.div

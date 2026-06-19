@@ -1,4 +1,5 @@
 import { timestampConverter } from "../../helpers/timestampConverter";
+import { getAvatarUrl } from "../../helpers/avatar";
 
 type UserCardProps = {
   userName: string;
@@ -13,9 +14,7 @@ function UserCard({ userName, userPhoto, data, ratingValue }: UserCardProps) {
 
   const convertedData = timestampConverter(data);
 
-  const avatarSrc =
-    userPhoto ??
-    `/avatars/${([...userName].reduce((a, c) => a + c.charCodeAt(0), 0) % 9) + 1}.png`;
+  const avatarSrc = getAvatarUrl(userName, userPhoto);
 
   return (
     <div className="flex  gap-2 ">

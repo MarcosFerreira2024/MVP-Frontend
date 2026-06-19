@@ -37,6 +37,7 @@ function VisibleGaleryImages({
           >
             <img
               src={item}
+              alt="Foto da galeria"
               className={`w-full h-full object-cover group-hover:scale-105 duration-200 ease-in-out
   
                 `}

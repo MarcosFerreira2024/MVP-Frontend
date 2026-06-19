@@ -1,11 +1,11 @@
-import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { Modal } from "../../Modal";
 import Input from "../../Input";
 import TextArea from "../../TextArea";
 import Label from "../../Label";
 import Button from "../../Button";
 import useOutingEdit from "../../../hooks/useOutingEdit";
+import { cities } from "../../../helpers/parks";
 import type { OutingResponse } from "../../../types/Outing";
 
 type OutingEditModalProps = {
@@ -15,72 +15,35 @@ type OutingEditModalProps = {
   onSuccess: (data?: Record<string, unknown>) => void;
 };
 
-const cities = [
-  { id: 1, name: "Teresópolis" },
-  { id: 2, name: "Petrópolis" },
-  { id: 3, name: "Nova Friburgo" },
-  { id: 4, name: "Guapimirim" },
-  { id: 5, name: "Cachoeiras de Macacu" },
-  { id: 6, name: "São José do Vale do Rio Preto" },
-  { id: 7, name: "Sumidouro" },
-  { id: 8, name: "Sapucaia" },
-  { id: 9, name: "Areal" },
-];
-
 function OutingEditModal({ isOpen, outing, onClose, onSuccess }: OutingEditModalProps) {
   const { form, set, setBool, handleSubmit, loading } = useOutingEdit(outing, onClose, onSuccess);
   const categoryName = outing?.category?.name ?? "";
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-2 sm:p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ ease: "linear", duration: 0.2 }}
-          onClick={onClose}
-        >
-          <motion.div
-            className="bg-gray-50 p-4 sm:p-6 rounded-lg w-full max-w-lg md:max-w-xl lg:max-w-2xl relative shadow-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 cursor-pointer z-10"
-              onClick={onClose}
-              aria-label="Fechar"
-            >
-              <X className="w-5 h-5" />
-            </button>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      innerClassName="bg-gray-50 p-4 sm:p-6 rounded-lg w-full max-w-lg md:max-w-xl lg:max-w-2xl relative shadow-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
+    >
+      <button
+        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 cursor-pointer z-10"
+        onClick={onClose}
+        aria-label="Fechar"
+      >
+        <X className="w-5 h-5" />
+      </button>
 
-            <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-green-900">
-              Editar Passeio
-            </h2>
+      <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-green-900">
+        Editar Passeio
+      </h2>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit();
-              }}
-              className="flex flex-col gap-4 sm:gap-6"
-            >
-              {/* ===== Seção 1: Dados Base ===== */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+        className="flex flex-col gap-4 sm:gap-6"
+      >
               <div>
                 <h3 className="text-green-800 font-semibold text-sm sm:text-base mb-3 border-b border-gray-200 pb-1">
                   Dados Base
@@ -133,7 +96,6 @@ function OutingEditModal({ isOpen, outing, onClose, onSuccess }: OutingEditModal
                 </Label>
               </div>
 
-              {/* ===== Seção 2: Dados Específicos da Categoria ===== */}
               {categoryName && (
                 <div>
                   <h3 className="text-green-800 font-semibold text-sm sm:text-base mb-3 border-b border-gray-200 pb-1">
@@ -208,7 +170,6 @@ function OutingEditModal({ isOpen, outing, onClose, onSuccess }: OutingEditModal
                 </div>
               )}
 
-              {/* ===== Seção 3: Fotos ===== */}
               <div>
                 <h3 className="text-green-800 font-semibold text-sm sm:text-base mb-3 border-b border-gray-200 pb-1">
                   Fotos
@@ -227,7 +188,6 @@ function OutingEditModal({ isOpen, outing, onClose, onSuccess }: OutingEditModal
                 />
               </div>
 
-              {/* ===== Seção 4: Horários ===== */}
               <div>
                 <h3 className="text-green-800 font-semibold text-sm sm:text-base mb-3 border-b border-gray-200 pb-1">
                   Horários de Funcionamento
@@ -248,7 +208,6 @@ function OutingEditModal({ isOpen, outing, onClose, onSuccess }: OutingEditModal
                 />
               </div>
 
-              {/* ===== Botões ===== */}
               <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-2">
                 <Button type="button" variant="default" onClick={onClose} className="w-full sm:w-auto">
                   Cancelar
@@ -258,10 +217,7 @@ function OutingEditModal({ isOpen, outing, onClose, onSuccess }: OutingEditModal
                 </Button>
               </div>
             </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Modal>
   );
 }
 

@@ -1,11 +1,10 @@
-import { useState } from "react";
 import UserCard from "./UserCard";
 import type { Rating } from "../../types/Outing";
 import { Pencil, Trash } from "lucide-react";
 import { useAuthorization } from "../../hooks/useAuthorization";
-import { deleteRating } from "../../actions/deleteRating";
-import handleErrors from "../../helpers/handleErrors";
-import toast from "react-hot-toast";
+import { useRatingDelete } from "../../hooks/useRatingDelete";
+import { useConfirmDelete } from "../../hooks/useConfirmDelete";
+import ConfirmDialog from "../ConfirmDialog";
 import Button from "../Button";
 
 interface RatingCardProps {
@@ -17,30 +16,15 @@ interface RatingCardProps {
 
 function RatingCard({ ratingData, onDeleteSuccess, onEdit, outingId }: RatingCardProps) {
   const { loading, canDeleteRating, isOwner } = useAuthorization();
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await toast.promise(deleteRating(outingId, ratingData.id), {
-        loading: "Apagando avaliação...",
-        success: "Avaliação apagada com sucesso!",
-        error: (err) => handleErrors(err),
-      });
-      onDeleteSuccess?.(ratingData.id);
-    } catch {
-      // ignore
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  const { isDeleting, handleDelete } = useRatingDelete({ outingId, onDeleteSuccess });
+  const { confirmDeleteId, requestDelete, cancelDelete } = useConfirmDelete();
 
   const canDelete = canDeleteRating(ratingData.userId);
   const isOwnerRating = isOwner(ratingData.userId);
 
   return (
     <div className="flex flex-col gap-3 h-full max-h-[150px] w-full py-3 border-b border-gray-200 relative">
-      {!loading && canDelete && (
+      {!loading && canDelete && !isDeleting && (
         <div className="absolute top-0 right-0 flex gap-1">
           {isOwnerRating && (
             <Button
@@ -53,7 +37,7 @@ function RatingCard({ ratingData, onDeleteSuccess, onEdit, outingId }: RatingCar
             </Button>
           )}
           <Button
-            onClick={handleDelete}
+            onClick={() => requestDelete(ratingData.id)}
             disabled={isDeleting}
             className="w-8 h-8 p-1 bg-red-700 hover:bg-red-800 text-white rounded-full flex items-center justify-center transition-colors"
             size="icon"
@@ -74,6 +58,22 @@ function RatingCard({ ratingData, onDeleteSuccess, onEdit, outingId }: RatingCar
           {ratingData.comment}
         </p>
       )}
+
+      <ConfirmDialog
+        isOpen={!!confirmDeleteId}
+        title="Excluir Avaliação"
+        message="Tem certeza que deseja excluir esta avaliação? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            handleDelete(confirmDeleteId);
+            cancelDelete();
+          }
+        }}
+        onCancel={cancelDelete}
+        loading={isDeleting}
+      />
     </div>
   );
 }

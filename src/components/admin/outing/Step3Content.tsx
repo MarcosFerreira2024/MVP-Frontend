@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import TextArea from "../../TextArea";
 import { validateImageJson } from "../../../helpers/validationSchemas";
+import { useDebouncedValidation } from "../../../hooks/useDebouncedValidation";
 
 type SetStringDispatch = React.Dispatch<React.SetStateAction<string>>;
 type SetBooleanDispatch = React.Dispatch<React.SetStateAction<boolean>>;
@@ -17,47 +18,34 @@ export function Step3Content({
   setIsValid,
 }: Step3ContentProps) {
   const [rawImageJsonInput, setRawImageJsonInput] = useState(imageJson);
-  const debounceTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     setRawImageJsonInput(imageJson);
   }, [imageJson]);
 
-  useEffect(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
-    debounceTimeoutRef.current = setTimeout(() => {
-      if (rawImageJsonInput.trim() === "") {
+  const validate = useCallback(
+    (value: string) => {
+      if (value.trim() === "") {
         setIsValid(false);
         setImageJson("");
         return;
       }
-
-      const validationResult = validateImageJson(rawImageJsonInput);
+      const validationResult = validateImageJson(value);
       if (!validationResult.success) {
         setIsValid(false);
       } else {
         setIsValid(true);
-        setImageJson(rawImageJsonInput);
+        setImageJson(value);
       }
-    }, 500);
+    },
+    [setImageJson, setIsValid],
+  );
 
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [rawImageJsonInput, setImageJson, setIsValid]);
+  useDebouncedValidation(rawImageJsonInput, validate, 500);
 
   const handleTextAreaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     setRawImageJsonInput(newValue);
-
-    if (newValue.trim() !== "") {
-      setIsValid(false);
-    }
   };
 
   return (

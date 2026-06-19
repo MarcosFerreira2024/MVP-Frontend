@@ -1,23 +1,6 @@
-import { useState } from "react";
 import MobileCarousel from "../../MobileCarousel";
-
-const parkData = [
-  {
-    src: "/tres_picos.webp",
-    to: "/outing/parque-estadual-dos-tres-picos",
-    name: "Parque Estadual dos Três Picos",
-  },
-  {
-    src: "/parque_nacional.jpg",
-    to: "/outing/parque-nacional-serra-dos-orgaos",
-    name: "Parque Nacional Serra dos Órgãos",
-  },
-  {
-    src: "/parque_montanhas.jpg",
-    to: "/outing/parque-montanhas-teresopolis",
-    name: "Parque Natural Municipal Montanhas de Teresópolis",
-  },
-];
+import { parkCards as parkData } from "../../../helpers/parks";
+import { useCarouselNavigation } from "../../../hooks/useCarouselNavigation";
 
 const positions = [
   { side: "-left-8", rotation: "-rotate-2", origin: "origin-right" },
@@ -26,15 +9,7 @@ const positions = [
 ];
 
 export default function ParkCards() {
-  const [activeIndex, setActiveIndex] = useState<number>(1);
-
-  const handleClick = (index: number) => {
-    if (activeIndex === index) {
-      window.location.href = parkData[index].to;
-    } else {
-      setActiveIndex(index);
-    }
-  };
+  const { activeIndex, handleClick } = useCarouselNavigation(1);
 
   const mobileImages = parkData.map((item) => item.src);
 
@@ -64,7 +39,7 @@ export default function ParkCards() {
             <div
               key={index}
               className={containerClasses}
-              onClick={() => handleClick(index)}
+              onClick={() => handleClick(index, (i) => { window.location.href = parkData[i].to; })}
             >
               <img src={park.src} alt={park.name} className={imageClasses} />
 

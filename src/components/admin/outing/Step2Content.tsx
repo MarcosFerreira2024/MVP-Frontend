@@ -68,7 +68,6 @@ function Step2Content(props: Step2ContentProps) {
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      {/* Seção Específica (Roteada) */}
       {specificContent}
 
       <div className="flex gap-4">

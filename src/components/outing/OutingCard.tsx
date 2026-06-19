@@ -77,18 +77,22 @@ export function OutingCard({
     >
       {isAdmin && (
         <div className="absolute top-2 right-2 z-10 flex gap-2">
-          <div
+          <button
+            type="button"
             className="bg-green-950 text-white p-2 rounded-full cursor-pointer hover:bg-green-800 transition-colors"
             onClick={handleEditClick}
+            aria-label="Editar passeio"
           >
             <Pencil className="w-4 h-4" />
-          </div>
-          <div
+          </button>
+          <button
+            type="button"
             className="bg-red-700 text-white p-2 rounded-full cursor-pointer hover:bg-red-600 transition-colors"
             onClick={handleDeleteClick}
+            aria-label="Excluir passeio"
           >
             <Trash2 className="w-4 h-4" />
-          </div>
+          </button>
         </div>
       )}
       <div className="relative w-full h-[200px] overflow-hidden bg-green-900">
@@ -106,7 +110,7 @@ export function OutingCard({
             </p>
           </div>
           <div className="flex gap-2 items-center shrink-0">
-            <img src="/star.svg" />
+            <img src="/star.svg" alt="Estrela" />
             <p className="text-green-900 text-sm">
               {rating} ({ratingCount})
             </p>
@@ -114,7 +118,7 @@ export function OutingCard({
         </div>
         <div className="flex justify-between items-center mt-auto">
           <div className="flex gap-2 items-center">
-            <img src="/user.svg" />
+            <img src="/user.svg" alt="Usuário" />
             <p className="text-green-900">{isFree ? "Gratuito" : `${price}`}</p>
           </div>
           <Button
