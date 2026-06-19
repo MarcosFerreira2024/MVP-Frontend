@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { API_URL } from "../helpers/api";
 
 export interface OutingPayload {
   title: string;
@@ -6,7 +7,7 @@ export interface OutingPayload {
   price: number;
   slug: string;
   publicAudience: string;
-  categoryId: number; // UUID for category
+  categoryId: number;
   location: {
     latitude: number;
     longitude: number;
@@ -26,8 +27,8 @@ export interface OutingPayload {
   };
   event?: {
     maximumCapacity: number;
-    startDate: string; // ISO string
-    endDate: string; // ISO string
+    startDate: string;
+    endDate: string;
   };
 }
 
@@ -39,7 +40,7 @@ export async function createOuting(payload: OutingPayload, categoryPath: string)
   }
 
   try {
-    const response = await fetch(`http://localhost:3333/outing/${categoryPath}`, {
+    const response = await fetch(`${API_URL}/outing/${categoryPath}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -56,8 +57,8 @@ export async function createOuting(payload: OutingPayload, categoryPath: string)
     }
 
     return data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro na criação do passeio:", error);
-    throw new Error(error.message || "Falha na comunicação com o servidor.");
+    throw new Error(error instanceof Error ? error.message : "Falha na comunicação com o servidor.");
   }
 }

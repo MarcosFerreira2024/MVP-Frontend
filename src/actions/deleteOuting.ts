@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { API_URL } from "../helpers/api";
 
 export async function deleteOuting(id: string): Promise<Record<string, unknown>> {
   const token = Cookies.get("token");
@@ -8,7 +9,7 @@ export async function deleteOuting(id: string): Promise<Record<string, unknown>>
   }
 
   try {
-    const response = await fetch(`http://localhost:3333/outing/${id}`, {
+    const response = await fetch(`${API_URL}/outing/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { API_URL } from "../helpers/api";
 
 export async function sendVerificationCode(email: string, code: string): Promise<any> {
   const token = Cookies.get("token"); 
@@ -8,7 +9,7 @@ export async function sendVerificationCode(email: string, code: string): Promise
   }
 
   try {
-    const response = await fetch("http://localhost:3333/authentication/verify-code", {
+    const response = await fetch(`${API_URL}/authentication/verify-code`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -24,7 +25,7 @@ export async function sendVerificationCode(email: string, code: string): Promise
     }
 
     return json; 
-  } catch (e: any) {
-    throw new Error(e.message || "Erro de rede ou comunicação para verificação de código.");
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "Erro de rede ou comunicação para verificação de código.");
   }
 }

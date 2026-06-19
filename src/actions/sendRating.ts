@@ -1,9 +1,10 @@
 import Cookies from "js-cookie";
+import { API_URL } from "../helpers/api";
 
 interface SendRatingPayload {
   outingId: string;
   rating: number;
-  content?: string; // comment is optional
+  content?: string;
 }
 
 export async function sendRating(payload: SendRatingPayload): Promise<any> {
@@ -14,7 +15,7 @@ export async function sendRating(payload: SendRatingPayload): Promise<any> {
   }
 
   try {
-    const response = await fetch("http://localhost:3333/rating", {
+    const response = await fetch(`${API_URL}/rating`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,9 +30,9 @@ export async function sendRating(payload: SendRatingPayload): Promise<any> {
       throw new Error(data.message || data.error || "Erro ao enviar avaliação.");
     }
 
-    return data; // Return success data if needed
-  } catch (e: any) {
-    console.error("Erro na criação da avaliação:", e);
-    throw new Error(e.message || "Falha na comunicação com o servidor ao avaliar.");
+    return data;
+  } catch (error: unknown) {
+    console.error("Erro na criação da avaliação:", error);
+    throw new Error(error instanceof Error ? error.message : "Falha na comunicação com o servidor ao avaliar.");
   }
 }

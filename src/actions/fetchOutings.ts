@@ -1,4 +1,5 @@
 import type { OutingResponse } from "../types/Outing";
+import { API_URL } from "../helpers/api";
 
 export type FetchOutingsResponse = {
   outings: OutingResponse[];
@@ -24,14 +25,13 @@ export async function fetchOutings(
   console.log(searchParams);
   try {
     const response = await fetch(
-      `http://localhost:3333/outing?${query.toString()}`
+      `${API_URL}/outing?${query.toString()}`
     );
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
 
-    // Expecting data to be an object like { items: [...], totalItems: N }
     if (
       !data ||
       !Array.isArray(data.items) ||
@@ -44,11 +44,11 @@ export async function fetchOutings(
     }
 
     return {
-      outings: data.items, // Access data.items instead of data.outings
+      outings: data.items,
       totalItems: data.totalItems,
     };
-  } catch (error: any) {
-    console.error("Error fetching outings:", error.message);
-    throw new Error(error.message || "Failed to fetch outings");
+  } catch (error: unknown) {
+    console.error("Error fetching outings:", error);
+    throw new Error(error instanceof Error ? error.message : "Failed to fetch outings");
   }
 }

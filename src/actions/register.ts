@@ -1,3 +1,5 @@
+import { API_URL } from "../helpers/api";
+
 async function handleRegister(
   name: string,
   email: string,
@@ -5,7 +7,7 @@ async function handleRegister(
 ): Promise<any> {
   try {
     const response = await fetch(
-      "http://localhost:3333/authentication/signup",
+      `${API_URL}/authentication/signup`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -20,8 +22,8 @@ async function handleRegister(
     }
 
     return json;
-  } catch (e: any) {
-    throw new Error(e.message || "Erro de rede ou comunicação.");
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "Erro de rede ou comunicação.");
   }
 }
 

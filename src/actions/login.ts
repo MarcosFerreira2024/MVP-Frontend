@@ -1,5 +1,7 @@
+import { API_URL } from "../helpers/api";
+
 async function handleLogin(email: string, password: string): Promise<string> {
-  const response = await fetch("http://localhost:3333/authentication/login", {
+  const response = await fetch(`${API_URL}/authentication/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),

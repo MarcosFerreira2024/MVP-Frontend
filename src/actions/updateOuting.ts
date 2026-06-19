@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { API_URL } from "../helpers/api";
 
 export type UpdateOutingPayload = {
   title?: string;
@@ -39,7 +40,7 @@ export async function updateOuting(id: string, payload: UpdateOutingPayload): Pr
   }
 
   try {
-    const response = await fetch(`http://localhost:3333/outing/${id}`, {
+    const response = await fetch(`${API_URL}/outing/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

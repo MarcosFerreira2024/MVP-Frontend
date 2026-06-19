@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { API_URL } from "../helpers/api";
 
 interface UpdateRatingPayload {
   rating: number;
@@ -13,7 +14,7 @@ export async function updateRating(ratingId: string, payload: UpdateRatingPayloa
   }
 
   try {
-    const response = await fetch(`http://localhost:3333/rating/${ratingId}`, {
+    const response = await fetch(`${API_URL}/rating/${ratingId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -29,8 +30,8 @@ export async function updateRating(ratingId: string, payload: UpdateRatingPayloa
     }
 
     return data;
-  } catch (e: any) {
-    console.error("Erro na atualização da avaliação:", e);
-    throw new Error(e.message || "Falha na comunicação com o servidor ao atualizar avaliação.");
+  } catch (error: unknown) {
+    console.error("Erro na atualização da avaliação:", error);
+    throw new Error(error instanceof Error ? error.message : "Falha na comunicação com o servidor ao atualizar avaliação.");
   }
 }
