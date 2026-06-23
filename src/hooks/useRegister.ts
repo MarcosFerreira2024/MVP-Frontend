@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import type { InputData } from "../components/auth/InputLabelList";
 import handleRegister from "../actions/register";
 import handleErrors from "../helpers/handleErrors";
+import { useNavigate } from "react-router-dom";
 
 export function useRegister() {
   const [form, setForm] = useState({
@@ -12,6 +13,8 @@ export function useRegister() {
     password: "",
     confirmPassword: "",
   });
+
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
 
@@ -38,10 +41,11 @@ export function useRegister() {
         handleRegister(form.name, form.email, form.password),
         {
           loading: "Registrando usuário...",
-          success: "Cadastro realizado com sucesso!",
+          success: "Usuário registrado com sucesso! Faça login novamente",
           error: (err) => handleErrors(err),
-        }
+        },
       );
+      navigate("/login");
     } catch (error) {
       toast.error(handleErrors(error));
     } finally {
